@@ -218,7 +218,18 @@ function Index() {
               </p>
             ) : null}
 
-            {!job ? (
+            {submitting ? (
+              <div className="glass-panel flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl p-10 text-center">
+                <Loader2 className="size-7 animate-spin text-primary" />
+                <p className="font-display text-sm tracking-widest uppercase">
+                  Menganalisis video
+                </p>
+                <p className="max-w-sm text-muted-foreground">
+                  Mengambil transkrip asli video lalu memilih momen terbaik dengan AI.
+                  Proses ini bisa memakan 10–40 detik untuk VOD panjang.
+                </p>
+              </div>
+            ) : !job ? (
               <div className="glass-panel flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl p-10 text-center">
                 <ScissorsLineDashed className="size-8 text-primary" />
                 <p className="font-display text-sm tracking-widest uppercase">
