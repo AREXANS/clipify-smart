@@ -47,11 +47,22 @@ export const SUBTITLE_STYLES = [
 
 export type SubtitleStyle = (typeof SUBTITLE_STYLES)[number]["value"];
 
+export const FACECAM_SOURCE_OPTIONS = [
+  { value: "top-left", label: "Kotak kiri atas" },
+  { value: "top-right", label: "Kotak kanan atas" },
+  { value: "bottom-left", label: "Kotak kiri bawah" },
+  { value: "bottom-right", label: "Kotak kanan bawah" },
+  { value: "full", label: "Seluruh frame (kamera penuh)" },
+] as const;
+
+export type FacecamSource = (typeof FACECAM_SOURCE_OPTIONS)[number]["value"];
+
 export type ClipSettings = {
   url: string;
   aspectRatio: AspectRatio;
   layout: LayoutMode;
   facecamShare: number; // % tinggi frame untuk facecam saat layout split
+  facecamSource: FacecamSource; // posisi kamera streamer di video sumber
   subtitles: boolean;
   subtitleStyle: SubtitleStyle;
   subtitleLanguage: string;
@@ -67,7 +78,8 @@ export const DEFAULT_SETTINGS: ClipSettings = {
   url: "",
   aspectRatio: "9:16",
   layout: "split",
-  facecamShare: 30,
+  facecamShare: 50,
+  facecamSource: "top-left",
   subtitles: true,
   subtitleStyle: "karaoke",
   subtitleLanguage: "id",

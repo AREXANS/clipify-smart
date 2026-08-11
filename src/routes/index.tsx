@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Cpu, Link2, Loader2, ScissorsLineDashed, Youtube, Zap } from "lucide-react";
+import {
+  Cpu,
+  FileVideo,
+  Link2,
+  Loader2,
+  ScissorsLineDashed,
+  Youtube,
+  Zap,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
@@ -50,6 +58,20 @@ function Index() {
   const [submitting, setSubmitting] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
   const resultsRef = useRef<HTMLDivElement | null>(null);
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null);
+  const [sourceName, setSourceName] = useState<string | null>(null);
+
+  const handleSourceFile = (file: File | undefined) => {
+    if (!file) return;
+    setSourceUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+    setSourceName(file.name);
+    toast.success("Video sumber siap", {
+      description: "Klip akan dirender ulang sungguhan dari file ini.",
+    });
+  };
 
   const submitJob = useServerFn(createClipJob);
   const pollJob = useServerFn(getClipJob);
@@ -170,6 +192,25 @@ function Index() {
             {urlError ? (
               <p className="px-3 py-2 text-sm text-destructive">{urlError}</p>
             ) : null}
+
+            <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border bg-surface/50 px-4 py-3 text-left transition-colors hover:border-primary/60">
+              <FileVideo className="size-5 shrink-0 text-primary" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[0.95rem] leading-tight font-semibold">
+                  {sourceName ?? "Unggah file video sumber (MP4)"}
+                </span>
+                <span className="block text-sm text-muted-foreground">
+                  Wajib untuk render sungguhan: crop rasio, split facecam 50/50, subtitle
+                  terbakar, dan file siap diunduh.
+                </span>
+              </span>
+              <input
+                type="file"
+                accept="video/*"
+                className="hidden"
+                onChange={(e) => handleSourceFile(e.target.files?.[0])}
+              />
+            </label>
           </div>
 
           <ul className="mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
@@ -236,14 +277,20 @@ function Index() {
                   Belum ada klip
                 </p>
                 <p className="max-w-sm text-muted-foreground">
-                  Tempel URL YouTube di atas, atur preferensi di panel kiri, lalu tekan
-                  Generate klip.
+                  Tempel URL YouTube di atas, unggah file video sumbernya, atur preferensi
+                  di panel kiri, lalu tekan Generate klip.
                 </p>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {job.clips.map((clip, i) => (
-                  <ClipCard key={clip.id} clip={clip} settings={settings} index={i} />
+                  <ClipCard
+                    key={clip.id}
+                    clip={clip}
+                    settings={settings}
+                    index={i}
+                    sourceUrl={sourceUrl ?? undefined}
+                  />
                 ))}
               </div>
             )}

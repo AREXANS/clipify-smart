@@ -2,6 +2,7 @@ import { Layers, ScanFace, Sparkles } from "lucide-react";
 import { SubtitleStylePreview } from "@/components/clipper/subtitle-preview";
 import {
   ASPECT_RATIOS,
+  FACECAM_SOURCE_OPTIONS,
   LAYOUT_MODES,
   SUBTITLE_STYLES,
   type ClipSettings,
@@ -149,11 +150,39 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
             <Slider
               value={[settings.facecamShare]}
               min={10}
-              max={60}
+              max={80}
               step={5}
               disabled={disabled ?? false}
-              onValueChange={([v]) => onChange("facecamShare", v ?? 30)}
+              onValueChange={([v]) => onChange("facecamShare", v ?? 50)}
             />
+            <p className="mt-2 text-sm text-muted-foreground">
+              50% = layar terbagi dua sama besar (facecam atas, gameplay bawah).
+            </p>
+
+            <div className="mt-4 space-y-2">
+              <Label className="text-[0.95rem]">Posisi facecam di video sumber</Label>
+              <Select
+                value={settings.facecamSource}
+                onValueChange={(v) =>
+                  onChange("facecamSource", v as ClipSettings["facecamSource"])
+                }
+                disabled={disabled ?? false}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FACECAM_SOURCE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                Area ini di-zoom penuh ke bagian atas klip.
+              </p>
+            </div>
             <div className="mt-4 flex gap-2" aria-hidden>
               <div className="flex h-24 w-14 flex-col overflow-hidden rounded-md border border-primary/40">
                 <div
