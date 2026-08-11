@@ -36,26 +36,30 @@ export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
     };
   }
 
-  const clips: ClipResult[] = highlights.map((h, i) => ({
-    id: `${ctx.videoId}-${i}-${Math.round(h.start)}`,
-    title: h.title,
-    startSeconds: h.start,
-    endSeconds: h.end,
-    score: h.score,
-    reason: h.reason,
-    status: "ready",
-    progress: 100,
-    videoId: ctx.videoId,
-    previewUrl: embedUrl(ctx.videoId, h.start, h.end),
-    subtitleLines: settings.subtitles
-      ? (() => {
-          const cues = cuesBetween(ctx.transcript, h.start, h.end)
-            .map((c) => c.text)
-            .slice(0, 12);
-          return cues.length ? cues : h.caption ? [h.caption] : [];
-        })()
-      : [],
-  }));
+  const clips: ClipResult[] = highlights.map((h, i) => {
+    const clipCues = settings.subtitles
+      ? cuesBetween(ctx.transcript, h.start, h.end)
+      : [];
+    const cueTexts = clipCues.map((c) => c.text).slice(0, 12);
+    return {
+      id: `${ctx.videoId}-${i}-${Math.round(h.start)}`,
+      title: h.title,
+      startSeconds: h.start,
+      endSeconds: h.end,
+      score: h.score,
+      reason: h.reason,
+      status: "ready",
+      progress: 100,
+      videoId: ctx.videoId,
+      previewUrl: embedUrl(ctx.videoId, h.start, h.end),
+      subtitleLines: cueTexts.length ? cueTexts : h.caption ? [h.caption] : [],
+      subtitleCues: clipCues.length
+        ? clipCues
+        : h.caption
+          ? [{ start: h.start, end: h.end, text: h.caption }]
+          : [],
+    };
+  });
 
   return {
     id: `analysis_${ctx.videoId}_${Date.now()}`,
@@ -155,6 +159,7 @@ function normalizeProviderJob(
       videoId: source?.videoId,
       previewUrl: source?.previewUrl,
       subtitleLines: source?.subtitleLines,
+      subtitleCues: source?.subtitleCues,
     };
   });
 
