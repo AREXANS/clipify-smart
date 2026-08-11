@@ -79,6 +79,8 @@ export const DEFAULT_SETTINGS: ClipSettings = {
   highlightKills: true,
 };
 
+export type SubtitleCue = { start: number; end: number; text: string };
+
 export type ClipResult = {
   id: string;
   title: string;
@@ -92,6 +94,7 @@ export type ClipResult = {
   videoId?: string | undefined;
   previewUrl?: string | undefined;
   subtitleLines?: string[] | undefined;
+  subtitleCues?: SubtitleCue[] | undefined;
 };
 
 export type ClipJob = {
