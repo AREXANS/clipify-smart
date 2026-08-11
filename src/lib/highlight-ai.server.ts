@@ -7,45 +7,50 @@ export type Highlight = {
   end: number;
   score: number;
   reason: string;
+  caption: string;
 };
 
 const MODEL = "google/gemini-3.6-flash";
 
 function buildPrompt(ctx: VideoContext, settings: ClipSettings) {
   const lines = condenseTranscript(ctx.transcript);
-  // Batasi ~1200 blok agar aman untuk context window.
   const trimmed =
-    lines.length > 1200
-      ? [...lines.slice(0, 600), "...", ...lines.slice(-600)]
-      : lines;
+    lines.length > 900 ? [...lines.slice(0, 450), "...", ...lines.slice(-450)] : lines;
 
   const chapterText = ctx.chapters.length
-    ? ctx.chapters.map((c) => `[${c.start}s] ${c.title}`).join("\n")
-    : "(tidak ada chapter)";
+    ? `\nCHAPTER\n${ctx.chapters.map((c) => `[${c.start}s] ${c.title}`).join("\n")}`
+    : "";
+  const transcriptText = trimmed.length
+    ? `\nTRANSKRIP (detik)\n${trimmed.join("\n")}`
+    : "";
 
-  return `Kamu adalah editor video profesional untuk konten short-form (TikTok/Reels/Shorts).
+  const bahasa = settings.subtitleLanguage === "en" ? "Inggris" : "Indonesia";
+
+  return `Kamu editor video profesional untuk konten short-form (TikTok/Reels/Shorts).
+Tonton video di bawah ini secara langsung, lalu tentukan potongan terbaiknya.
 
 VIDEO
 Judul: ${ctx.title}
 Channel: ${ctx.author}
-Durasi total: ${ctx.durationSeconds} detik
-Deskripsi: ${ctx.description.slice(0, 800)}
-
-CHAPTER
-${chapterText}
-
-TRANSKRIP (stempel waktu dalam detik)
-${trimmed.join("\n") || "(transkrip tidak tersedia — gunakan judul, deskripsi, dan chapter)"}
+Durasi total: ${ctx.durationSeconds || "tidak diketahui"} detik
+Deskripsi: ${ctx.description.slice(0, 600)}${chapterText}${transcriptText}
 
 TUGAS
-Pilih tepat ${settings.clipCount} momen paling menarik untuk dijadikan klip pendek.
+Pilih tepat ${settings.clipCount} momen terbaik.
 Aturan wajib:
-- Setiap klip berdurasi antara ${settings.minDuration} dan ${settings.maxDuration} detik.
-- start >= 0 dan end <= ${ctx.durationSeconds}.
-- Klip tidak boleh saling tumpang tindih dan harus urut menaik.
-- Mulai klip tepat sebelum momen puncak agar konteksnya masuk.
-${settings.highlightKills ? "- Prioritaskan momen aksi/klimaks: kill beruntun, clutch, war, reaksi kaget, hasil mengejutkan.\n" : ""}${settings.removeSilence ? "- Hindari rentang yang hening atau bertele-tele tanpa dialog.\n" : ""}${settings.addHook ? `- title = hook clickbait maksimal 8 kata dalam bahasa ${settings.subtitleLanguage === "en" ? "Inggris" : "Indonesia"}.\n` : "- title = deskripsi netral singkat isi klip.\n"}- reason = satu kalimat singkat berbasis bukti dari transkrip (kutip kata kuncinya).
-- score = 0-100 tingkat potensi viral.`;
+- Durasi tiap klip antara ${settings.minDuration} dan ${settings.maxDuration} detik.
+- start >= 0${ctx.durationSeconds ? ` dan end <= ${ctx.durationSeconds}` : ""}, klip tidak boleh tumpang tindih, urut menaik.
+- Mulai sedikit sebelum puncak momen supaya konteksnya terbawa.
+${settings.highlightKills ? "- Prioritaskan aksi/klimaks: kill beruntun, savage, clutch, war, reaksi kaget.\n" : ""}${settings.removeSilence ? "- Hindari bagian hening, loading, atau bertele-tele.\n" : ""}${
+    settings.layout === "split"
+      ? "- Utamakan momen yang reaksi wajah streamer-nya terlihat, karena hasil akhir memakai layout split facecam.\n"
+      : settings.layout === "gameplay"
+        ? "- Fokus pada aksi di layar gameplay, bukan momen ngobrol.\n"
+        : ""
+  }- Format akhir ${settings.aspectRatio}, jadi pilih momen yang subjek utamanya jelas.
+${settings.addHook ? `- title = hook clickbait maksimal 8 kata dalam bahasa ${bahasa}.\n` : "- title = deskripsi singkat isi klip.\n"}- reason = satu kalimat bukti dari isi video (apa yang benar-benar terjadi di detik itu).
+- caption = satu kalimat pendek (maks 9 kata, bahasa ${bahasa}) berisi ucapan atau teks subtitle paling menonjol di klip tersebut.
+- score = 0-100 potensi viral.`;
 }
 
 const schema = {
@@ -58,13 +63,14 @@ const schema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["title", "start", "end", "score", "reason"],
+        required: ["title", "start", "end", "score", "reason", "caption"],
         properties: {
           title: { type: "string" },
           start: { type: "number" },
           end: { type: "number" },
           score: { type: "number" },
           reason: { type: "string" },
+          caption: { type: "string" },
         },
       },
     },
@@ -80,19 +86,25 @@ export async function selectHighlights(
 
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: MODEL,
       messages: [
         {
           role: "system",
           content:
-            "Kamu memilih highlight video secara akurat dan hanya membalas JSON sesuai skema.",
+            "Kamu menganalisis isi video secara akurat dan hanya membalas JSON sesuai skema.",
         },
-        { role: "user", content: buildPrompt(ctx, settings) },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: buildPrompt(ctx, settings) },
+            {
+              type: "video_url",
+              video_url: { url: `https://www.youtube.com/watch?v=${ctx.videoId}` },
+            },
+          ],
+        },
       ],
       response_format: {
         type: "json_schema",
@@ -103,8 +115,10 @@ export async function selectHighlights(
 
   if (!res.ok) {
     const body = await res.text();
-    if (res.status === 429) throw new Error("Batas permintaan AI tercapai, coba lagi sebentar lagi.");
-    if (res.status === 402) throw new Error("Kredit AI habis. Tambahkan kredit di workspace.");
+    if (res.status === 429)
+      throw new Error("Batas permintaan AI tercapai, coba lagi sebentar lagi.");
+    if (res.status === 402)
+      throw new Error("Kredit AI habis. Tambahkan kredit di workspace kamu.");
     throw new Error(`Analisis AI gagal [${res.status}]: ${body.slice(0, 300)}`);
   }
 
@@ -112,26 +126,32 @@ export async function selectHighlights(
     choices?: { message?: { content?: string } }[];
   };
   const content = payload.choices?.[0]?.message?.content ?? "{}";
-  const parsed = JSON.parse(content) as { clips?: Highlight[] };
-  const clips = parsed.clips ?? [];
+  let parsed: { clips?: Highlight[] };
+  try {
+    parsed = JSON.parse(content) as { clips?: Highlight[] };
+  } catch {
+    throw new Error("AI mengembalikan hasil yang tidak bisa dibaca. Coba ulangi.");
+  }
 
-  return clips
+  const total = ctx.durationSeconds || Number.MAX_SAFE_INTEGER;
+
+  return (parsed.clips ?? [])
     .map((c) => {
-      const start = Math.max(0, Math.round(c.start));
-      const rawEnd = Math.round(c.end);
-      const min = settings.minDuration;
-      const max = settings.maxDuration;
-      const duration = Math.min(max, Math.max(min, rawEnd - start));
-      const end = Math.min(
-        ctx.durationSeconds || start + duration,
-        start + duration,
+      const start = Math.max(0, Math.round(Number(c.start) || 0));
+      const rawDuration = Math.round((Number(c.end) || 0) - start);
+      const duration = Math.min(
+        settings.maxDuration,
+        Math.max(settings.minDuration, rawDuration),
       );
+      const end = Math.min(total, start + duration);
+      const rawScore = Number(c.score) || 70;
       return {
         title: String(c.title ?? "Highlight").slice(0, 90),
         start,
         end,
-        score: Math.max(1, Math.min(100, Math.round(c.score ?? 70))),
+        score: Math.max(1, Math.min(100, Math.round(rawScore <= 10 ? rawScore * 10 : rawScore))),
         reason: String(c.reason ?? "").slice(0, 240),
+        caption: String(c.caption ?? "").slice(0, 120),
       };
     })
     .filter((c) => c.end > c.start)
