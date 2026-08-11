@@ -1,86 +1,6 @@
 import type { ClipJob, ClipResult, ClipSettings } from "./clip-settings";
-
-const HOOKS = [
-  "Savage 5 kill beruntun",
-  "Clutch 1v3 di lord pit",
-  "Maniac dari jungler",
-  "Comeback 10 detik terakhir",
-  "Reaksi facecam paling kocak",
-  "Turret dive nekat",
-  "Steal lord tipis banget",
-  "Baim pro player kena tipu",
-  "Highlight late game war",
-  "Momen paling toxic chat",
-];
-
-const REASONS = [
-  "Lonjakan audio + banyak kill dalam 8 detik",
-  "Ekspresi facecam sangat ekspresif",
-  "Teamfight padat dengan 4 eliminasi",
-  "Kata kunci hype terdeteksi di transkrip",
-  "Perubahan momentum objektif (Lord)",
-  "Puncak retensi berdasarkan tempo bicara",
-];
-
-function hashString(input: string) {
-  let h = 2166136261;
-  for (let i = 0; i < input.length; i++) {
-    h ^= input.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return Math.abs(h);
-}
-
-export function buildDemoJobId(settings: ClipSettings) {
-  const seed = hashString(settings.url + settings.layout + settings.aspectRatio);
-  return `demo_${Date.now()}_${seed}_${settings.clipCount}_${settings.minDuration}_${settings.maxDuration}`;
-}
-
-export function buildDemoJob(jobId: string): ClipJob {
-  const [, startedAtRaw, seedRaw, countRaw, minRaw, maxRaw] = jobId.split("_");
-  const startedAt = Number(startedAtRaw);
-  const seed = Number(seedRaw);
-  const count = Math.max(1, Math.min(12, Number(countRaw) || 6));
-  const min = Number(minRaw) || 20;
-  const max = Math.max(min + 5, Number(maxRaw) || 60);
-
-  const elapsed = (Date.now() - startedAt) / 1000;
-  const clips: ClipResult[] = [];
-
-  for (let i = 0; i < count; i++) {
-    const r = (seed + i * 9973) % 1000;
-    const duration = min + (r % Math.max(1, max - min));
-    const start = 120 + i * 210 + (r % 90);
-    // Setiap klip "selesai" bertahap agar progres terasa nyata.
-    const clipStartDelay = 1.5 + i * 1.6;
-    const clipProgress = Math.max(
-      0,
-      Math.min(100, Math.round(((elapsed - clipStartDelay) / 6) * 100)),
-    );
-    clips.push({
-      id: `${jobId}-c${i}`,
-      title: HOOKS[(seed + i) % HOOKS.length]!,
-      startSeconds: start,
-      endSeconds: start + duration,
-      score: 72 + ((seed + i * 37) % 28),
-      reason: REASONS[(seed + i * 3) % REASONS.length]!,
-      status:
-        clipProgress >= 100 ? "ready" : clipProgress <= 0 ? "queued" : "rendering",
-      progress: clipProgress,
-    });
-  }
-
-  const allReady = clips.every((c) => c.status === "ready");
-
-  return {
-    id: jobId,
-    configured: false,
-    status: allReady ? "completed" : "processing",
-    message:
-      "Mode pratinjau: analisis dan render sungguhan aktif setelah API pemrosesan video disambungkan.",
-    clips,
-  };
-}
+import { selectHighlights } from "./highlight-ai.server";
+import { cuesBetween, fetchVideoContext } from "./youtube.server";
 
 type ProviderConfig = { baseUrl: string; apiKey: string };
 
@@ -89,6 +9,62 @@ export function getProviderConfig(): ProviderConfig | null {
   const apiKey = process.env["CLIPPER_API_KEY"];
   if (!baseUrl || !apiKey) return null;
   return { baseUrl: baseUrl.replace(/\/$/, ""), apiKey };
+}
+
+function embedUrl(videoId: string, start: number, end: number) {
+  return `https://www.youtube.com/embed/${videoId}?start=${Math.floor(start)}&end=${Math.ceil(end)}&rel=0&modestbranding=1`;
+}
+
+/**
+ * Analisis nyata: ambil metadata + transkrip asli video, lalu minta AI memilih
+ * highlight sesuai pengaturan pengguna. Hasilnya berupa klip dengan timestamp
+ * sungguhan yang bisa langsung ditonton.
+ */
+export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
+  const ctx = await fetchVideoContext(settings.url, settings.subtitleLanguage);
+  const highlights = await selectHighlights(ctx, settings);
+
+  if (highlights.length === 0) {
+    return {
+      id: `analysis_${ctx.videoId}_${Date.now()}`,
+      configured: true,
+      status: "failed",
+      message: "AI tidak menemukan momen yang cocok dengan pengaturan durasi kamu.",
+      clips: [],
+      videoTitle: ctx.title,
+      transcriptAvailable: ctx.transcript.length > 0,
+    };
+  }
+
+  const clips: ClipResult[] = highlights.map((h, i) => ({
+    id: `${ctx.videoId}-${i}-${Math.round(h.start)}`,
+    title: h.title,
+    startSeconds: h.start,
+    endSeconds: h.end,
+    score: h.score,
+    reason: h.reason,
+    status: "ready",
+    progress: 100,
+    videoId: ctx.videoId,
+    previewUrl: embedUrl(ctx.videoId, h.start, h.end),
+    subtitleLines: settings.subtitles
+      ? cuesBetween(ctx.transcript, h.start, h.end)
+          .map((c) => c.text)
+          .slice(0, 12)
+      : [],
+  }));
+
+  return {
+    id: `analysis_${ctx.videoId}_${Date.now()}`,
+    configured: true,
+    status: "completed",
+    message: ctx.transcript.length
+      ? `Analisis nyata selesai dari transkrip asli video (${ctx.transcript.length} baris${ctx.transcriptLanguage ? `, bahasa ${ctx.transcriptLanguage}` : ""}).`
+      : "Video ini tidak punya transkrip; AI memakai judul, deskripsi, dan chapter sebagai dasar analisis.",
+    clips,
+    videoTitle: ctx.title,
+    transcriptAvailable: ctx.transcript.length > 0,
+  };
 }
 
 async function providerFetch(
@@ -106,14 +82,16 @@ async function providerFetch(
   });
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Layanan pemrosesan gagal [${res.status}]: ${body.slice(0, 400)}`);
+    throw new Error(`Layanan render gagal [${res.status}]: ${body.slice(0, 400)}`);
   }
   return res.json() as Promise<Record<string, unknown>>;
 }
 
+/** Kirim hasil analisis ke layanan render agar menjadi file MP4 siap unduh. */
 export async function createProviderJob(
   config: ProviderConfig,
   settings: ClipSettings,
+  analysis: ClipJob,
 ): Promise<ClipJob> {
   const payload = await providerFetch(config, "/jobs", {
     method: "POST",
@@ -131,9 +109,15 @@ export async function createProviderJob(
       add_hook_title: settings.addHook,
       remove_silence: settings.removeSilence,
       highlight_action: settings.highlightKills,
+      segments: analysis.clips.map((c) => ({
+        id: c.id,
+        title: c.title,
+        start: c.startSeconds,
+        end: c.endSeconds,
+      })),
     }),
   });
-  return normalizeProviderJob(payload);
+  return normalizeProviderJob(payload, analysis);
 }
 
 export async function fetchProviderJob(
@@ -144,20 +128,28 @@ export async function fetchProviderJob(
   return normalizeProviderJob(payload);
 }
 
-function normalizeProviderJob(payload: Record<string, unknown>): ClipJob {
+function normalizeProviderJob(
+  payload: Record<string, unknown>,
+  analysis?: ClipJob,
+): ClipJob {
   const rawClips = Array.isArray(payload["clips"]) ? payload["clips"] : [];
   const clips: ClipResult[] = rawClips.map((raw, i) => {
     const c = raw as Record<string, unknown>;
+    const id = String(c["id"] ?? `clip-${i}`);
+    const source = analysis?.clips.find((a) => a.id === id) ?? analysis?.clips[i];
     return {
-      id: String(c["id"] ?? `clip-${i}`),
-      title: String(c["title"] ?? `Klip ${i + 1}`),
-      startSeconds: Number(c["start"] ?? c["start_seconds"] ?? 0),
-      endSeconds: Number(c["end"] ?? c["end_seconds"] ?? 0),
-      score: Number(c["score"] ?? 0),
-      reason: String(c["reason"] ?? ""),
+      id,
+      title: String(c["title"] ?? source?.title ?? `Klip ${i + 1}`),
+      startSeconds: Number(c["start"] ?? c["start_seconds"] ?? source?.startSeconds ?? 0),
+      endSeconds: Number(c["end"] ?? c["end_seconds"] ?? source?.endSeconds ?? 0),
+      score: Number(c["score"] ?? source?.score ?? 0),
+      reason: String(c["reason"] ?? source?.reason ?? ""),
       status: (c["status"] as ClipResult["status"]) ?? "queued",
       progress: Number(c["progress"] ?? 0),
       downloadUrl: (c["download_url"] as string | undefined) ?? undefined,
+      videoId: source?.videoId,
+      previewUrl: source?.previewUrl,
+      subtitleLines: source?.subtitleLines,
     };
   });
 
@@ -165,7 +157,9 @@ function normalizeProviderJob(payload: Record<string, unknown>): ClipJob {
     id: String(payload["id"] ?? ""),
     configured: true,
     status: (payload["status"] as ClipJob["status"]) ?? "processing",
-    message: (payload["message"] as string | undefined) ?? undefined,
-    clips,
+    message: (payload["message"] as string | undefined) ?? analysis?.message,
+    clips: clips.length ? clips : (analysis?.clips ?? []),
+    videoTitle: analysis?.videoTitle,
+    transcriptAvailable: analysis?.transcriptAvailable,
   };
 }
