@@ -84,8 +84,12 @@ function Index() {
     try {
       const created = await submitJob({ data: { ...settings, url: settings.url.trim() } });
       setJob(created);
-      if (!created.configured) {
-        toast.info("Mode pratinjau aktif", { description: created.message });
+      if (created.status === "failed") {
+        toast.error(created.message ?? "Analisis gagal.");
+      } else {
+        toast.success(`${created.clips.length} klip ditemukan`, {
+          description: created.message,
+        });
       }
       setTimeout(
         () => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
