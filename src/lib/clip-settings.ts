@@ -72,6 +72,7 @@ export type ClipSettings = {
   addHook: boolean;
   removeSilence: boolean;
   highlightKills: boolean;
+  useAi: boolean;
 };
 
 export const DEFAULT_SETTINGS: ClipSettings = {
