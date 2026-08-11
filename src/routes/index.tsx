@@ -63,6 +63,7 @@ function Index() {
 
   useEffect(() => {
     if (!job || job.status === "completed" || job.status === "failed") return;
+    if (!job.clips.some((c) => c.status !== "ready")) return;
     const id = setInterval(() => {
       pollJob({ data: { jobId: job.id } })
         .then(setJob)
@@ -84,8 +85,12 @@ function Index() {
     try {
       const created = await submitJob({ data: { ...settings, url: settings.url.trim() } });
       setJob(created);
-      if (!created.configured) {
-        toast.info("Mode pratinjau aktif", { description: created.message });
+      if (created.status === "failed") {
+        toast.error(created.message ?? "Analisis gagal.");
+      } else {
+        toast.success(`${created.clips.length} klip ditemukan`, {
+          description: created.message,
+        });
       }
       setTimeout(
         () => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
@@ -213,7 +218,18 @@ function Index() {
               </p>
             ) : null}
 
-            {!job ? (
+            {submitting ? (
+              <div className="glass-panel flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl p-10 text-center">
+                <Loader2 className="size-7 animate-spin text-primary" />
+                <p className="font-display text-sm tracking-widest uppercase">
+                  Menganalisis video
+                </p>
+                <p className="max-w-sm text-muted-foreground">
+                  Mengambil transkrip asli video lalu memilih momen terbaik dengan AI.
+                  Proses ini bisa memakan 10–40 detik untuk VOD panjang.
+                </p>
+              </div>
+            ) : !job ? (
               <div className="glass-panel flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl p-10 text-center">
                 <ScissorsLineDashed className="size-8 text-primary" />
                 <p className="font-display text-sm tracking-widest uppercase">

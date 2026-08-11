@@ -1,13 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { ClipJob } from "./clip-settings";
-import {
-  buildDemoJob,
-  buildDemoJobId,
-  createProviderJob,
-  fetchProviderJob,
-  getProviderConfig,
-} from "./clipper.server";
 
 const settingsSchema = z.object({
   url: z.string().url().max(300),
@@ -28,22 +21,24 @@ const settingsSchema = z.object({
 export const createClipJob = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => settingsSchema.parse(input))
   .handler(async ({ data }): Promise<ClipJob> => {
+    const { analyzeVideo, createProviderJob, getProviderConfig } = await import(
+      "./clipper.server"
+    );
+    const analysis = await analyzeVideo(data);
     const config = getProviderConfig();
-    if (!config) {
-      return buildDemoJob(buildDemoJobId(data));
-    }
-    return createProviderJob(config, data);
+    if (!config || analysis.status === "failed") return analysis;
+    return createProviderJob(config, data, analysis);
   });
 
 export const getClipJob = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) => z.object({ jobId: z.string().min(1) }).parse(input))
+  .inputValidator((input: unknown) =>
+    z.object({ jobId: z.string().min(1) }).parse(input),
+  )
   .handler(async ({ data }): Promise<ClipJob> => {
-    if (data.jobId.startsWith("demo_")) {
-      return buildDemoJob(data.jobId);
-    }
+    const { fetchProviderJob, getProviderConfig } = await import("./clipper.server");
     const config = getProviderConfig();
     if (!config) {
-      throw new Error("Layanan pemrosesan video belum dikonfigurasi.");
+      throw new Error("Layanan render video belum dikonfigurasi.");
     }
     return fetchProviderJob(config, data.jobId);
   });
