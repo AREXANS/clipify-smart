@@ -1,4 +1,5 @@
 import type { ClipJob, ClipResult, ClipSettings } from "./clip-settings";
+import type { Highlight } from "./highlight-local.server";
 import { selectHighlightsLocal } from "./highlight-local.server";
 import { cuesBetween, fetchVideoContext } from "./youtube.server";
 
