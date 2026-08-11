@@ -159,6 +159,7 @@ function normalizeProviderJob(
       videoId: source?.videoId,
       previewUrl: source?.previewUrl,
       subtitleLines: source?.subtitleLines,
+      subtitleCues: source?.subtitleCues,
     };
   });
 
