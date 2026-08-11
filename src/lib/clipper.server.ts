@@ -48,9 +48,12 @@ export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
     videoId: ctx.videoId,
     previewUrl: embedUrl(ctx.videoId, h.start, h.end),
     subtitleLines: settings.subtitles
-      ? cuesBetween(ctx.transcript, h.start, h.end)
-          .map((c) => c.text)
-          .slice(0, 12)
+      ? (() => {
+          const cues = cuesBetween(ctx.transcript, h.start, h.end)
+            .map((c) => c.text)
+            .slice(0, 12);
+          return cues.length ? cues : h.caption ? [h.caption] : [];
+        })()
       : [],
   }));
 
@@ -58,9 +61,11 @@ export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
     id: `analysis_${ctx.videoId}_${Date.now()}`,
     configured: true,
     status: "completed",
-    message: ctx.transcript.length
-      ? `Analisis nyata selesai dari transkrip asli video (${ctx.transcript.length} baris${ctx.transcriptLanguage ? `, bahasa ${ctx.transcriptLanguage}` : ""}).`
-      : "Video ini tidak punya transkrip; AI memakai judul, deskripsi, dan chapter sebagai dasar analisis.",
+    message: `AI menonton langsung isi video ini dan memilih ${clips.length} momen sesuai pengaturan kamu${
+      ctx.transcript.length
+        ? ` (dibantu transkrip asli ${ctx.transcript.length} baris${ctx.transcriptLanguage ? `, ${ctx.transcriptLanguage}` : ""})`
+        : ""
+    }.`,
     clips,
     videoTitle: ctx.title,
     transcriptAvailable: ctx.transcript.length > 0,
