@@ -9,9 +9,11 @@ const aiOutputSchema = z.object({
   highlights: z.array(
     z.object({
       title: z.string(),
-      start_seconds: z.number(),
-      end_seconds: z.number(),
-      score: z.number(),
+      start_seconds: z.number().optional(),
+      end_seconds: z.number().optional(),
+      start_time: z.number().optional(),
+      end_time: z.number().optional(),
+      score: z.number().optional(),
       reason: z.string(),
       caption: z.string(),
     }),
@@ -49,9 +51,23 @@ ${settings.removeSilence ? "- Hindari jeda/jeda panjang; klip harus padat bicara
 ${settings.addHook ? "- Buat judul menarik dengan hook di awal (contoh: 'Momen Paling Gila!', 'Savage di Detik Terakhir!')." : ""}
 - Alasan harus menjelaskan kenapa momen itu viral.
 - Caption adalah 1-2 kalimat puncak yang muncul di klip.
-- Semua timestamp dalam detik dan harus valid (0 sampai ${ctx.durationSeconds}).
 - Klip tidak boleh tumpang tindih.
-- Kembalikan dalam JSON dengan properti: highlights[].
+
+FORMAT KELUARAN (JSON):
+Gunakan field name persis berikut untuk setiap highlight:
+{
+  "highlights": [
+    {
+      "title": "...",
+      "start_seconds": 120,
+      "end_seconds": 150,
+      "score": 85,
+      "reason": "...",
+      "caption": "..."
+    }
+  ]
+}
+Score 1-100. Semua timestamp dalam detik (0 sampai ${ctx.durationSeconds}).
 `;
 }
 
@@ -86,8 +102,9 @@ function normalizeHighlights(
   const picked: Highlight[] = [];
 
   for (const h of raw.highlights.slice(0, settings.clipCount)) {
-    let start = Math.max(0, Math.floor(h.start_seconds));
-    let end = Math.min(total || start + max, Math.ceil(h.end_seconds));
+    const start = Math.max(0, Math.floor(h.start_seconds ?? h.start_time ?? 0));
+    const rawEnd = h.end_seconds ?? h.end_time;
+    let end = rawEnd ? Math.min(total || rawEnd, Math.ceil(rawEnd)) : start + min;
     if (end - start < min) end = Math.min(total || end + min, start + min);
     if (end - start > max) end = start + max;
     if (total && end > total) end = total;
@@ -97,7 +114,7 @@ function normalizeHighlights(
       title: h.title.slice(0, 90),
       start,
       end,
-      score: Math.max(55, Math.min(99, Math.round(h.score))),
+      score: Math.max(55, Math.min(99, Math.round(h.score ?? 80))),
       reason: h.reason.slice(0, 220),
       caption: h.caption.slice(0, 120),
     });
