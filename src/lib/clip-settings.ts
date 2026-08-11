@@ -28,9 +28,21 @@ export const LAYOUT_MODES = [
 export type LayoutMode = (typeof LAYOUT_MODES)[number]["value"];
 
 export const SUBTITLE_STYLES = [
-  { value: "karaoke", label: "Karaoke word-pop" },
-  { value: "bold", label: "Bold caption" },
-  { value: "minimal", label: "Minimal clean" },
+  {
+    value: "karaoke",
+    label: "Karaoke word-pop",
+    desc: "Kata aktif menyala kuning, per kata muncul mengikuti suara.",
+  },
+  {
+    value: "bold",
+    label: "Bold caption",
+    desc: "Huruf kapital tebal dengan outline hitam, gaya viral TikTok.",
+  },
+  {
+    value: "minimal",
+    label: "Minimal clean",
+    desc: "Teks putih rapi di atas bilah gelap transparan.",
+  },
 ] as const;
 
 export type SubtitleStyle = (typeof SUBTITLE_STYLES)[number]["value"];
@@ -77,6 +89,9 @@ export type ClipResult = {
   status: "queued" | "rendering" | "ready" | "failed";
   progress: number;
   downloadUrl?: string | undefined;
+  videoId?: string | undefined;
+  previewUrl?: string | undefined;
+  subtitleLines?: string[] | undefined;
 };
 
 export type ClipJob = {
@@ -85,6 +100,8 @@ export type ClipJob = {
   status: "queued" | "processing" | "completed" | "failed";
   message?: string | undefined;
   clips: ClipResult[];
+  videoTitle?: string | undefined;
+  transcriptAvailable?: boolean | undefined;
 };
 
 const YT_PATTERNS = [
