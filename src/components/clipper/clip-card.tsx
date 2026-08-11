@@ -1,6 +1,7 @@
 import { Download, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { formatTimecode, type ClipResult, type ClipSettings } from "@/lib/clip-settings";
 import { ClipPlayer } from "@/components/clipper/clip-player";
+import { ClipRender } from "@/components/clipper/clip-render";
 import { SubtitleText } from "@/components/clipper/subtitle-preview";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -16,13 +17,36 @@ export function ClipCard({
   clip,
   settings,
   index,
+  sourceUrl,
 }: {
   clip: ClipResult;
   settings: ClipSettings;
   index: number;
+  sourceUrl?: string | undefined;
 }) {
   const ready = clip.status === "ready";
   const subtitleLine = clip.subtitleLines?.[0] ?? clip.title;
+
+  if (ready && sourceUrl) {
+    return (
+      <article className="glass-panel overflow-hidden rounded-xl p-3">
+        <ClipRender clip={clip} settings={settings} sourceUrl={sourceUrl} index={index} />
+        <div className="space-y-2 px-1 pt-3">
+          <h3 className="text-[0.95rem] leading-tight font-semibold">
+            #{index + 1} · {clip.title}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {formatTimecode(clip.startSeconds)} – {formatTimecode(clip.endSeconds)} ·{" "}
+            {Math.round(clip.endSeconds - clip.startSeconds)} detik · skor {clip.score}
+          </p>
+          <p className="flex items-start gap-2 text-sm text-muted-foreground">
+            <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
+            {clip.reason}
+          </p>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="glass-panel overflow-hidden rounded-xl">
