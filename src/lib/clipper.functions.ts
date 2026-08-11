@@ -43,7 +43,7 @@ export const getClipJob = createServerFn({ method: "GET" })
     }
     const config = getProviderConfig();
     if (!config) {
-      return buildDemoJob(buildDemoJobId({ url: "https://youtu.be/00000000000" } as never));
+      throw new Error("Layanan pemrosesan video belum dikonfigurasi.");
     }
     return fetchProviderJob(config, data.jobId);
   });
