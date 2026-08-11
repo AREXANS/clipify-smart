@@ -1,4 +1,5 @@
 import { Layers, ScanFace, Sparkles } from "lucide-react";
+import { SubtitleStylePreview } from "@/components/clipper/subtitle-preview";
 import {
   ASPECT_RATIOS,
   LAYOUT_MODES,
