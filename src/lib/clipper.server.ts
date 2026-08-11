@@ -1,5 +1,5 @@
 import type { ClipJob, ClipResult, ClipSettings } from "./clip-settings";
-import { selectHighlights } from "./highlight-ai.server";
+import { selectHighlightsLocal } from "./highlight-local.server";
 import { cuesBetween, fetchVideoContext } from "./youtube.server";
 
 type ProviderConfig = { baseUrl: string; apiKey: string };
@@ -16,20 +16,19 @@ function embedUrl(videoId: string, start: number, end: number) {
 }
 
 /**
- * Analisis nyata: ambil metadata + transkrip asli video, lalu minta AI memilih
- * highlight sesuai pengaturan pengguna. Hasilnya berupa klip dengan timestamp
- * sungguhan yang bisa langsung ditonton.
+ * Analisis nyata tanpa kredit: ambil metadata + transkrip asli video, lalu
+ * pilih highlight dengan algoritma lokal sesuai pengaturan pengguna.
  */
 export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
   const ctx = await fetchVideoContext(settings.url, settings.subtitleLanguage);
-  const highlights = await selectHighlights(ctx, settings);
+  const highlights = selectHighlightsLocal(ctx, settings);
 
   if (highlights.length === 0) {
     return {
       id: `analysis_${ctx.videoId}_${Date.now()}`,
       configured: true,
       status: "failed",
-      message: "AI tidak menemukan momen yang cocok dengan pengaturan durasi kamu.",
+      message: "Tidak ada momen yang cocok dengan pengaturan durasi kamu.",
       clips: [],
       videoTitle: ctx.title,
       transcriptAvailable: ctx.transcript.length > 0,
@@ -65,7 +64,7 @@ export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
     id: `analysis_${ctx.videoId}_${Date.now()}`,
     configured: true,
     status: "completed",
-    message: `AI menonton langsung isi video ini dan memilih ${clips.length} momen sesuai pengaturan kamu${
+    message: `Analisis lokal (tanpa kredit, tanpa batas) memilih ${clips.length} momen sesuai pengaturan kamu${
       ctx.transcript.length
         ? ` (dibantu transkrip asli ${ctx.transcript.length} baris${ctx.transcriptLanguage ? `, ${ctx.transcriptLanguage}` : ""})`
         : ""
