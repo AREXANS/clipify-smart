@@ -23,6 +23,7 @@ const settingsSchema = z.object({
   addHook: z.boolean(),
   removeSilence: z.boolean(),
   highlightKills: z.boolean(),
+  useAi: z.boolean(),
 });
 
 export const createClipJob = createServerFn({ method: "POST" })
