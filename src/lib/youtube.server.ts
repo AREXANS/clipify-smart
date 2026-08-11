@@ -100,7 +100,24 @@ export async function fetchVideoContext(
   const videoId = extractVideoId(url);
   if (!videoId) throw new Error("URL YouTube tidak dikenali.");
 
-  const html = await fetchWatchPage(videoId);
+  const empty: VideoContext = {
+    videoId,
+    title: "Video YouTube",
+    author: "",
+    description: "",
+    durationSeconds: 0,
+    chapters: [],
+    transcript: [],
+    transcriptLanguage: null,
+  };
+
+  let html: string;
+  try {
+    html = await fetchWatchPage(videoId);
+  } catch {
+    // Metadata gagal diambil; AI tetap bisa menonton video langsung.
+    return empty;
+  }
 
   if (/"status":"(LOGIN_REQUIRED|UNPLAYABLE|ERROR)"/.test(html)) {
     throw new Error(
