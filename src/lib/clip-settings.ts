@@ -72,6 +72,7 @@ export type ClipSettings = {
   addHook: boolean;
   removeSilence: boolean;
   highlightKills: boolean;
+  useAi: boolean;
 };
 
 export const DEFAULT_SETTINGS: ClipSettings = {
@@ -89,6 +90,7 @@ export const DEFAULT_SETTINGS: ClipSettings = {
   addHook: true,
   removeSilence: true,
   highlightKills: true,
+  useAi: true,
 };
 
 export type SubtitleCue = { start: number; end: number; text: string };

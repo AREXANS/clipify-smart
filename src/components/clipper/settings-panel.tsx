@@ -278,7 +278,15 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
         <SectionTitle
           icon={Sparkles}
           title="Output & Seleksi Momen"
-          desc="Jumlah klip, durasi, dan cara AI memilih highlight."
+          desc="Jumlah klip, durasi, dan cara analisis memilih highlight."
+        />
+
+        <ToggleRow
+          label="Analisis AI (Lovable AI)"
+          desc="Gunakan model AI untuk memilih momen viral. Matikan untuk analisis lokal tanpa kredit."
+          checked={settings.useAi}
+          onCheckedChange={(v) => onChange("useAi", v)}
+          disabled={disabled ?? false}
         />
 
         <div className="rounded-lg border border-border bg-surface/60 px-4 py-4">
