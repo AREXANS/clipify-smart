@@ -63,6 +63,7 @@ function Index() {
 
   useEffect(() => {
     if (!job || job.status === "completed" || job.status === "failed") return;
+    if (!job.clips.some((c) => c.status !== "ready")) return;
     const id = setInterval(() => {
       pollJob({ data: { jobId: job.id } })
         .then(setJob)
