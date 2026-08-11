@@ -76,14 +76,14 @@ export type ClipResult = {
   reason: string;
   status: "queued" | "rendering" | "ready" | "failed";
   progress: number;
-  downloadUrl?: string;
+  downloadUrl?: string | undefined;
 };
 
 export type ClipJob = {
   id: string;
   configured: boolean;
   status: "queued" | "processing" | "completed" | "failed";
-  message?: string;
+  message?: string | undefined;
   clips: ClipResult[];
 };
 
