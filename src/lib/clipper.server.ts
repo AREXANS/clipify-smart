@@ -17,12 +17,33 @@ function embedUrl(videoId: string, start: number, end: number) {
 }
 
 /**
- * Analisis nyata tanpa kredit: ambil metadata + transkrip asli video, lalu
- * pilih highlight dengan algoritma lokal sesuai pengaturan pengguna.
+ * Analisis video: ambil metadata + transkrip, lalu pilih highlight dengan AI
+ * (jika useAi aktif dan kunci tersedia) atau algoritma lokal.
  */
 export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
   const ctx = await fetchVideoContext(settings.url, settings.subtitleLanguage);
-  const highlights = selectHighlightsLocal(ctx, settings);
+
+  let highlights: Highlight[] = [];
+  let analysisMode: "ai" | "lokal" | "lokal fallback ai" = "lokal";
+  let aiError: string | undefined;
+
+  if (settings.useAi && process.env["LOVABLE_API_KEY"]) {
+    try {
+      const { selectHighlightsAI } = await import("./highlight-ai.server");
+      const aiResult = await selectHighlightsAI(ctx, settings);
+      highlights = aiResult.highlights;
+      analysisMode = aiResult.source === "ai" ? "ai" : "lokal";
+    } catch (err) {
+      aiError = err instanceof Error ? err.message : "Analisis AI gagal";
+      highlights = selectHighlightsLocal(ctx, settings);
+      analysisMode = "lokal fallback ai";
+    }
+  }
+
+  if (highlights.length === 0) {
+    highlights = selectHighlightsLocal(ctx, settings);
+    analysisMode = "lokal";
+  }
 
   if (highlights.length === 0) {
     return {
@@ -37,9 +58,7 @@ export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
   }
 
   const clips: ClipResult[] = highlights.map((h, i) => {
-    const clipCues = settings.subtitles
-      ? cuesBetween(ctx.transcript, h.start, h.end)
-      : [];
+    const clipCues = settings.subtitles ? cuesBetween(ctx.transcript, h.start, h.end) : [];
     const cueTexts = clipCues.map((c) => c.text).slice(0, 12);
     return {
       id: `${ctx.videoId}-${i}-${Math.round(h.start)}`,
@@ -61,15 +80,21 @@ export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
     };
   });
 
+  const modeLabel = {
+    ai: "Analisis AI",
+    lokal: "Analisis lokal",
+    "lokal fallback ai": "Analisis lokal (fallback AI)",
+  }[analysisMode];
+
   return {
     id: `analysis_${ctx.videoId}_${Date.now()}`,
     configured: true,
     status: "completed",
-    message: `Analisis lokal (tanpa kredit, tanpa batas) memilih ${clips.length} momen sesuai pengaturan kamu${
+    message: `${modeLabel} memilih ${clips.length} momen${
       ctx.transcript.length
         ? ` (dibantu transkrip asli ${ctx.transcript.length} baris${ctx.transcriptLanguage ? `, ${ctx.transcriptLanguage}` : ""})`
         : ""
-    }.`,
+    }.${aiError ? ` Catatan AI: ${aiError}.` : ""}`,
     clips,
     videoTitle: ctx.title,
     transcriptAvailable: ctx.transcript.length > 0,
