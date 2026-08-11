@@ -190,29 +190,38 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
           disabled={disabled ?? false}
         />
         {settings.subtitles ? (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label>Gaya subtitle</Label>
-              <Select
-                value={settings.subtitleStyle}
-                onValueChange={(v) =>
-                  onChange("subtitleStyle", v as ClipSettings["subtitleStyle"])
-                }
-                disabled={disabled ?? false}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUBTITLE_STYLES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {SUBTITLE_STYLES.map((s) => {
+                  const active = settings.subtitleStyle === s.value;
+                  return (
+                    <button
+                      key={s.value}
+                      type="button"
+                      disabled={disabled ?? false}
+                      aria-pressed={active}
+                      onClick={() => onChange("subtitleStyle", s.value)}
+                      className={`space-y-2 rounded-lg border p-2 text-left transition-colors disabled:opacity-50 ${
+                        active
+                          ? "border-primary/60 bg-accent glow-ring"
+                          : "border-border bg-surface/60 hover:bg-surface-2"
+                      }`}
+                    >
+                      <SubtitleStylePreview style={s.value} />
+                      <span className="block px-1 text-[0.8rem] leading-tight font-semibold">
+                        {s.label}
+                      </span>
+                      <span className="block px-1 pb-1 text-xs leading-snug text-muted-foreground">
+                        {s.desc}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:max-w-[220px]">
               <Label>Bahasa</Label>
               <Select
                 value={settings.subtitleLanguage}
