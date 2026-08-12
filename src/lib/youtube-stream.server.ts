@@ -114,10 +114,12 @@ export async function resolveProgressiveStream(videoId: string): Promise<Resolve
 /** Teruskan permintaan (termasuk Range) ke CDN YouTube dan alirkan hasilnya. */
 export async function streamVideoRange(videoId: string, range: string | null) {
   let resolved = await resolveProgressiveStream(videoId);
+  // CDN YouTube menolak (403) permintaan tanpa Range, jadi selalu kirim Range.
+  const upstreamRange = range && range.startsWith("bytes=") ? range : "bytes=0-";
   const doFetch = (url: string) =>
     fetch(url, {
       headers: {
-        ...(range ? { Range: range } : {}),
+        Range: upstreamRange,
         "User-Agent": STREAM_UA,
       },
     });
@@ -138,10 +140,16 @@ export async function streamVideoRange(videoId: string, range: string | null) {
     "Accept-Ranges": "bytes",
     "Cache-Control": "public, max-age=600",
   });
-  const contentRange = upstream.headers.get("content-range");
-  if (contentRange) headers.set("Content-Range", contentRange);
   const contentLength = upstream.headers.get("content-length");
   if (contentLength) headers.set("Content-Length", contentLength);
 
+  // Tanpa Range dari klien: sajikan sebagai 200 penuh.
+  if (!range) {
+    return new Response(upstream.body, { status: 200, headers });
+  }
+
+  const contentRange = upstream.headers.get("content-range");
+  if (contentRange) headers.set("Content-Range", contentRange);
   return new Response(upstream.body, { status: upstream.status, headers });
 }
+
