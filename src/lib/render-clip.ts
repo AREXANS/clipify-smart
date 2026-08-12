@@ -293,6 +293,17 @@ export async function renderClipToFile(options: {
     );
   }
 
+  // Deteksi facecam dari frame video sungguhan (bukan thumbnail).
+  let faceRect = options.facecamRect ?? null;
+  if (settings.layout === "split" && settings.facecamSource === "auto" && !faceRect) {
+    const { detectFacecamRect } = await import("@/lib/facecam-detect");
+    faceRect = await detectFacecamRect({
+      video,
+      startSeconds: clip.startSeconds,
+      endSeconds: clip.endSeconds,
+    }).catch(() => null);
+  }
+
   await new Promise<void>((resolve) => {
     video.onseeked = () => resolve();
     video.currentTime = clip.startSeconds;
