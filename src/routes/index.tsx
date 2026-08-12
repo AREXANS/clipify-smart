@@ -61,11 +61,9 @@ function Index() {
   const [uploadUrl, setUploadUrl] = useState<string | null>(null);
   const [sourceName, setSourceName] = useState<string | null>(null);
 
-  const videoId = job?.clips.find((c) => c.videoId)?.videoId;
-  // Default: stream langsung dari YouTube lewat proxy same-origin (dukungan Range,
-  // jadi video panjang pun cukup di-seek ke rentang klip). File unggahan opsional.
-  const sourceUrl =
-    uploadUrl ?? (videoId ? `/api/public/yt-stream?v=${videoId}` : null);
+  // YouTube menolak proxy media dari sebagian alamat server produksi. Preview
+  // memakai player resmi YouTube; file lokal hanya dipakai untuk render/export.
+  const sourceUrl = uploadUrl;
 
   const handleSourceFile = (file: File | undefined) => {
     if (!file) return;
@@ -203,12 +201,11 @@ function Index() {
               <FileVideo className="size-5 shrink-0 text-primary" />
               <span className="min-w-0 flex-1">
                 <span className="block text-[0.95rem] leading-tight font-semibold">
-                  {sourceName ?? "Opsional: unggah file video (MP4)"}
+                  {sourceName ?? "Unggah MP4 untuk render dan unduh"}
                 </span>
                 <span className="block text-sm text-muted-foreground">
-                  Tidak wajib — klip diambil langsung dari URL YouTube, berapa pun
-                  durasinya. Unggah file hanya jika video privat atau ingin kualitas
-                  sumber lebih tinggi.
+                  Tanpa unggahan, momen tetap bisa dipreview lewat YouTube. File sumber
+                  diperlukan hanya untuk membuat dan mengunduh hasil edit.
                 </span>
               </span>
               <input
@@ -284,8 +281,8 @@ function Index() {
                   Belum ada klip
                 </p>
                 <p className="max-w-sm text-muted-foreground">
-                  Tempel URL YouTube di atas, unggah file video sumbernya, atur preferensi
-                  di panel kiri, lalu tekan Generate klip.
+                  Tempel URL YouTube di atas, atur preferensi di panel kiri, lalu tekan
+                  Generate klip. Unggah MP4 jika ingin merender hasil edit.
                 </p>
               </div>
             ) : (
