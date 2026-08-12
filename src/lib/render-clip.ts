@@ -266,6 +266,7 @@ export async function renderClipToFile(options: {
   sourceUrl: string;
   clip: ClipResult;
   settings: ClipSettings;
+  facecamRect?: Rect | null | undefined;
   onProgress?: (ratio: number) => void;
   signal?: AbortSignal;
 }): Promise<RenderedClip> {
