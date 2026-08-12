@@ -81,7 +81,7 @@ export const DEFAULT_SETTINGS: ClipSettings = {
   aspectRatio: "9:16",
   layout: "split",
   facecamShare: 50,
-  facecamSource: "top-left",
+  facecamSource: "auto",
   subtitles: true,
   subtitleStyle: "karaoke",
   subtitleLanguage: "id",

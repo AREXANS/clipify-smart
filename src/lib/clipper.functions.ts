@@ -8,6 +8,7 @@ const settingsSchema = z.object({
   layout: z.enum(["auto", "split", "gameplay"]),
   facecamShare: z.number().min(10).max(80),
   facecamSource: z.enum([
+    "auto",
     "top-left",
     "top-right",
     "bottom-left",
