@@ -51,9 +51,22 @@ export function ClipCard({
   return (
     <article className="glass-panel overflow-hidden rounded-xl">
       <div className={`relative ${RATIO_CLASS[settings.aspectRatio]} bg-background`}>
-        {ready && clip.videoId ? (
-          <ClipPlayer clip={clip} settings={settings} />
-        ) : !ready ? (
+        {ready ? (
+          <>
+            <div className="absolute inset-0 grid-backdrop opacity-70" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-5 text-center">
+              <FileVideo className="size-7 text-primary" />
+              <p className="font-display text-sm tracking-widest uppercase">
+                Butuh file sumber
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Unggah file video MP4-nya di atas. Klip akan dipotong{" "}
+                {Math.round(clip.endSeconds - clip.startSeconds)} detik, di-split facecam
+                otomatis, dan bisa diunduh sebagai file hasil edit.
+              </p>
+            </div>
+          </>
+        ) : (
           <>
             <div className="absolute inset-0 grid-backdrop opacity-70" />
             <div className="absolute inset-0 scan-sheen flex flex-col items-center justify-center gap-2 bg-background/70">
@@ -61,13 +74,6 @@ export function ClipCard({
               <span className="text-sm text-muted-foreground">
                 {clip.status === "queued" ? "Menunggu antrian" : "Merender klip"}
               </span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="absolute inset-0 grid-backdrop opacity-70" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-              <span className="text-sm text-muted-foreground">Pratinjau tidak tersedia</span>
             </div>
           </>
         )}
