@@ -26,25 +26,28 @@ type PlayerFormat = {
 
 const cache = new Map<string, { value: ResolvedStream; expiresAt: number }>();
 
+// Klien iOS masih melayani URL progressive tanpa verifikasi bot.
 const CLIENT_CONTEXT = {
   client: {
-    clientName: "ANDROID_VR",
-    clientVersion: "1.60.19",
-    deviceMake: "Oculus",
-    deviceModel: "Quest 3",
-    androidSdkVersion: 32,
-    osName: "Android",
-    osVersion: "12",
+    clientName: "IOS",
+    clientVersion: "20.10.4",
+    deviceMake: "Apple",
+    deviceModel: "iPhone16,2",
+    osName: "iPhone",
+    osVersion: "18.3.2.22D82",
     hl: "id",
   },
 };
+
+const STREAM_UA =
+  "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X)";
 
 async function requestPlayer(videoId: string) {
   const res = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "User-Agent": "Mozilla/5.0 (Linux; Android 12; Quest 3) Cobalt/Version",
+      "User-Agent": STREAM_UA,
     },
     body: JSON.stringify({
       videoId,
@@ -115,7 +118,7 @@ export async function streamVideoRange(videoId: string, range: string | null) {
     fetch(url, {
       headers: {
         ...(range ? { Range: range } : {}),
-        "User-Agent": "Mozilla/5.0 (Linux; Android 12; Quest 3) Cobalt/Version",
+        "User-Agent": STREAM_UA,
       },
     });
 
