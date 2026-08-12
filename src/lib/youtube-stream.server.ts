@@ -111,11 +111,17 @@ export async function resolveProgressiveStream(videoId: string): Promise<Resolve
   return value;
 }
 
+const CHUNK_SIZE = 2 * 1024 * 1024;
+
 /** Teruskan permintaan (termasuk Range) ke CDN YouTube dan alirkan hasilnya. */
 export async function streamVideoRange(videoId: string, range: string | null) {
   let resolved = await resolveProgressiveStream(videoId);
-  // CDN YouTube menolak (403) permintaan tanpa Range, jadi selalu kirim Range.
-  const upstreamRange = range && range.startsWith("bytes=") ? range : "bytes=0-";
+  // CDN YouTube menolak Range terbuka / tanpa Range (403), jadi selalu dibatasi.
+  const match = /bytes=(\d*)-(\d*)/.exec(range ?? "");
+  const start = match?.[1] ? Number(match[1]) : 0;
+  const end = match?.[2] ? Number(match[2]) : start + CHUNK_SIZE - 1;
+  const upstreamRange = `bytes=${start}-${end}`;
+
   const doFetch = (url: string) =>
     fetch(url, {
       headers: {
@@ -142,14 +148,11 @@ export async function streamVideoRange(videoId: string, range: string | null) {
   });
   const contentLength = upstream.headers.get("content-length");
   if (contentLength) headers.set("Content-Length", contentLength);
-
-  // Tanpa Range dari klien: sajikan sebagai 200 penuh.
-  if (!range) {
-    return new Response(upstream.body, { status: 200, headers });
-  }
-
   const contentRange = upstream.headers.get("content-range");
   if (contentRange) headers.set("Content-Range", contentRange);
-  return new Response(upstream.body, { status: upstream.status, headers });
+
+  // Selalu 206 supaya browser tahu ini potongan dan meminta sisanya.
+  return new Response(upstream.body, { status: 206, headers });
+
 }
 
