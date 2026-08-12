@@ -1,6 +1,8 @@
 import { Download, ExternalLink, FileVideo, Loader2, Sparkles } from "lucide-react";
 import { formatTimecode, type ClipResult, type ClipSettings } from "@/lib/clip-settings";
 import { ClipRender } from "@/components/clipper/clip-render";
+import { ClipEmbed } from "@/components/clipper/clip-embed";
+
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 
@@ -25,26 +27,46 @@ export function ClipCard({
 }) {
   const ready = clip.status === "ready";
 
-  if (ready && sourceUrl) {
-    return (
-      <article className="glass-panel overflow-hidden rounded-xl p-3">
-        <ClipRender clip={clip} settings={settings} sourceUrl={sourceUrl} index={index} />
-        <div className="space-y-2 px-1 pt-3">
-          <h3 className="text-[0.95rem] leading-tight font-semibold">
-            #{index + 1} · {clip.title}
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {formatTimecode(clip.startSeconds)} – {formatTimecode(clip.endSeconds)} ·{" "}
-            {Math.round(clip.endSeconds - clip.startSeconds)} detik · skor {clip.score}
-          </p>
-          <p className="flex items-start gap-2 text-sm text-muted-foreground">
-            <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
-            {clip.reason}
-          </p>
-        </div>
-      </article>
+  if (ready) {
+    const body = (
+      <div className="space-y-2 px-1 pt-3">
+        <h3 className="text-[0.95rem] leading-tight font-semibold">
+          #{index + 1} · {clip.title}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {formatTimecode(clip.startSeconds)} – {formatTimecode(clip.endSeconds)} ·{" "}
+          {Math.round(clip.endSeconds - clip.startSeconds)} detik · skor {clip.score}
+        </p>
+        <p className="flex items-start gap-2 text-sm text-muted-foreground">
+          <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
+          {clip.reason}
+        </p>
+      </div>
     );
+
+    if (sourceUrl) {
+      return (
+        <article className="glass-panel overflow-hidden rounded-xl p-3">
+          <ClipRender clip={clip} settings={settings} sourceUrl={sourceUrl} index={index} />
+          {body}
+        </article>
+      );
+    }
+
+    if (clip.videoId) {
+      return (
+        <article className="glass-panel overflow-hidden rounded-xl p-3">
+          <ClipEmbed clip={clip} settings={settings} index={index} />
+          {body}
+          <p className="px-1 pt-2 text-sm text-muted-foreground">
+            Pratinjau hasil edit (durasi potongan). Unggah MP4 sumber untuk merender dan
+            mengunduh file.
+          </p>
+        </article>
+      );
+    }
   }
+
 
   return (
     <article className="glass-panel overflow-hidden rounded-xl">
