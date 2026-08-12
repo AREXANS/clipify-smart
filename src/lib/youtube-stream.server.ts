@@ -118,7 +118,7 @@ export async function streamVideoRange(videoId: string, range: string | null) {
     fetch(url, {
       headers: {
         ...(range ? { Range: range } : {}),
-        "User-Agent": "Mozilla/5.0 (Linux; Android 12; Quest 3) Cobalt/Version",
+        "User-Agent": STREAM_UA,
       },
     });
 
