@@ -203,11 +203,12 @@ function Index() {
               <FileVideo className="size-5 shrink-0 text-primary" />
               <span className="min-w-0 flex-1">
                 <span className="block text-[0.95rem] leading-tight font-semibold">
-                  {sourceName ?? "Unggah file video sumber (MP4)"}
+                  {sourceName ?? "Opsional: unggah file video (MP4)"}
                 </span>
                 <span className="block text-sm text-muted-foreground">
-                  Wajib untuk render sungguhan: crop rasio, split facecam 50/50, subtitle
-                  terbakar, dan file siap diunduh.
+                  Tidak wajib — klip diambil langsung dari URL YouTube, berapa pun
+                  durasinya. Unggah file hanya jika video privat atau ingin kualitas
+                  sumber lebih tinggi.
                 </span>
               </span>
               <input
