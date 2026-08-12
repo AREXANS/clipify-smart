@@ -130,7 +130,7 @@ export function ClipRender({
     const tick = () => {
       const rel = video.currentTime - clip.startSeconds;
       setElapsed(rel);
-      drawClipFrame({ ctx, video, settings, clip, elapsed: rel });
+      drawClipFrame({ ctx, video, settings, clip, elapsed: rel, facecamRect });
       if (rel >= duration || video.ended) {
         stop();
         return;
