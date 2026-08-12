@@ -171,6 +171,8 @@ export type FrameContext = {
   clip: ClipResult;
   /** Detik relatif terhadap awal klip. */
   elapsed: number;
+  /** Kotak facecam hasil deteksi otomatis (fraksi 0–1), menimpa preset. */
+  facecamRect?: Rect | null | undefined;
 };
 
 /** Satu frame klip jadi: crop rasio, split facecam, subtitle, hook. */
@@ -180,6 +182,7 @@ export function drawClipFrame({
   settings,
   clip,
   elapsed,
+  facecamRect,
 }: FrameContext) {
   const { w: W, h: H } = OUTPUT_SIZE[settings.aspectRatio];
   const dims = {
@@ -194,7 +197,9 @@ export function drawClipFrame({
 
   if (settings.layout === "split") {
     const topH = Math.round((H * settings.facecamShare) / 100);
-    const face = FACECAM_SOURCES[settings.facecamSource] ?? FULL;
+    const preset = FACECAM_SOURCES[settings.facecamSource] ?? FULL;
+    const face =
+      settings.facecamSource === "auto" ? (facecamRect ?? preset) : preset;
     drawCover(ctx, video, dims, face, { x: 0, y: 0, w: W, h: topH });
     drawCover(ctx, video, dims, FULL, { x: 0, y: topH, w: W, h: H - topH });
     ctx.fillStyle = "rgba(0,0,0,0.9)";
