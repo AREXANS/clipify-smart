@@ -64,6 +64,9 @@ export type ClipSettings = {
   layout: LayoutMode;
   facecamShare: number; // % tinggi frame untuk facecam saat layout split
   facecamSource: FacecamSource; // posisi kamera streamer di video sumber
+  facecamZoom: number; // % zoom area facecam (100 = preset, >100 makin dekat)
+  facecamOffsetX: number; // geser area facecam horizontal (-50..50 % lebar)
+  facecamOffsetY: number; // geser area facecam vertikal (-50..50 % tinggi)
   subtitles: boolean;
   subtitleStyle: SubtitleStyle;
   subtitleLanguage: string;
@@ -82,6 +85,9 @@ export const DEFAULT_SETTINGS: ClipSettings = {
   layout: "split",
   facecamShare: 50,
   facecamSource: "auto",
+  facecamZoom: 100,
+  facecamOffsetX: 0,
+  facecamOffsetY: 0,
   subtitles: true,
   subtitleStyle: "karaoke",
   subtitleLanguage: "id",
@@ -109,6 +115,9 @@ export type ClipResult = {
   videoId?: string | undefined;
   previewUrl?: string | undefined;
   subtitleLines?: string[] | undefined;
+  shortsTitle?: string | undefined;
+  caption?: string | undefined;
+  hashtags?: string[] | undefined;
   subtitleCues?: SubtitleCue[] | undefined;
 };
 
