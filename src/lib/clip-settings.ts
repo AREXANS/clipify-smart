@@ -48,6 +48,7 @@ export const SUBTITLE_STYLES = [
 export type SubtitleStyle = (typeof SUBTITLE_STYLES)[number]["value"];
 
 export const FACECAM_SOURCE_OPTIONS = [
+  { value: "auto", label: "Deteksi wajah otomatis" },
   { value: "top-left", label: "Kotak kiri atas" },
   { value: "top-right", label: "Kotak kanan atas" },
   { value: "bottom-left", label: "Kotak kiri bawah" },
@@ -80,7 +81,7 @@ export const DEFAULT_SETTINGS: ClipSettings = {
   aspectRatio: "9:16",
   layout: "split",
   facecamShare: 50,
-  facecamSource: "top-left",
+  facecamSource: "auto",
   subtitles: true,
   subtitleStyle: "karaoke",
   subtitleLanguage: "id",

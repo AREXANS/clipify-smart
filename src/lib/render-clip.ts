@@ -18,6 +18,7 @@ export type Rect = { x: number; y: number; w: number; h: number };
 
 /** Area sumber facecam pada video asli (fraksi 0–1). */
 export const FACECAM_SOURCES: Record<ClipSettings["facecamSource"], Rect> = {
+  auto: { x: 0, y: 0, w: 0.3, h: 0.36 },
   "top-left": { x: 0, y: 0, w: 0.3, h: 0.36 },
   "top-right": { x: 0.7, y: 0, w: 0.3, h: 0.36 },
   "bottom-left": { x: 0, y: 0.64, w: 0.3, h: 0.36 },
@@ -170,6 +171,8 @@ export type FrameContext = {
   clip: ClipResult;
   /** Detik relatif terhadap awal klip. */
   elapsed: number;
+  /** Kotak facecam hasil deteksi otomatis (fraksi 0–1), menimpa preset. */
+  facecamRect?: Rect | null | undefined;
 };
 
 /** Satu frame klip jadi: crop rasio, split facecam, subtitle, hook. */
@@ -179,6 +182,7 @@ export function drawClipFrame({
   settings,
   clip,
   elapsed,
+  facecamRect,
 }: FrameContext) {
   const { w: W, h: H } = OUTPUT_SIZE[settings.aspectRatio];
   const dims = {
@@ -193,7 +197,9 @@ export function drawClipFrame({
 
   if (settings.layout === "split") {
     const topH = Math.round((H * settings.facecamShare) / 100);
-    const face = FACECAM_SOURCES[settings.facecamSource] ?? FULL;
+    const preset = FACECAM_SOURCES[settings.facecamSource] ?? FULL;
+    const face =
+      settings.facecamSource === "auto" ? (facecamRect ?? preset) : preset;
     drawCover(ctx, video, dims, face, { x: 0, y: 0, w: W, h: topH });
     drawCover(ctx, video, dims, FULL, { x: 0, y: topH, w: W, h: H - topH });
     ctx.fillStyle = "rgba(0,0,0,0.9)";
@@ -260,6 +266,7 @@ export async function renderClipToFile(options: {
   sourceUrl: string;
   clip: ClipResult;
   settings: ClipSettings;
+  facecamRect?: Rect | null | undefined;
   onProgress?: (ratio: number) => void;
   signal?: AbortSignal;
 }): Promise<RenderedClip> {
@@ -284,6 +291,17 @@ export async function renderClipToFile(options: {
     throw new Error(
       "Momen klip berada di luar durasi video sumber. Pastikan file yang diunggah sama dengan video YouTube-nya.",
     );
+  }
+
+  // Deteksi facecam dari frame video sungguhan (bukan thumbnail).
+  let faceRect = options.facecamRect ?? null;
+  if (settings.layout === "split" && settings.facecamSource === "auto" && !faceRect) {
+    const { detectFacecamRect } = await import("@/lib/facecam-detect");
+    faceRect = await detectFacecamRect({
+      video,
+      startSeconds: clip.startSeconds,
+      endSeconds: clip.endSeconds,
+    }).catch(() => null);
   }
 
   await new Promise<void>((resolve) => {
@@ -335,7 +353,7 @@ export async function renderClipToFile(options: {
     let raf = 0;
     const tick = () => {
       const elapsed = video.currentTime - clip.startSeconds;
-      drawClipFrame({ ctx, video, settings, clip, elapsed });
+      drawClipFrame({ ctx, video, settings, clip, elapsed, facecamRect: faceRect });
       onProgress?.(Math.min(1, Math.max(0, elapsed / duration)));
       if (signal?.aborted || elapsed >= duration || video.ended) {
         cancelAnimationFrame(raf);
