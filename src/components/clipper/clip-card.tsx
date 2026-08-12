@@ -1,10 +1,10 @@
-import { Download, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { Download, ExternalLink, FileVideo, Loader2, Sparkles } from "lucide-react";
 import { formatTimecode, type ClipResult, type ClipSettings } from "@/lib/clip-settings";
-import { ClipPlayer } from "@/components/clipper/clip-player";
 import { ClipRender } from "@/components/clipper/clip-render";
 import { SubtitleText } from "@/components/clipper/subtitle-preview";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+
 
 const RATIO_CLASS: Record<ClipSettings["aspectRatio"], string> = {
   "9:16": "aspect-[9/16]",
