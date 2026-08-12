@@ -180,9 +180,84 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground">
-                Area ini di-zoom penuh ke bagian atas klip.
+                Pilih pojok tempat kamera streamer berada, lalu atur zoom manual di bawah.
               </p>
             </div>
+
+            <div className="mt-4 space-y-3 rounded-lg border border-border bg-surface/40 px-3 py-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-[0.95rem]">Zoom facecam</Label>
+                <span className="font-display text-sm text-primary">
+                  {settings.facecamZoom}%
+                </span>
+              </div>
+              <Slider
+                value={[settings.facecamZoom]}
+                min={60}
+                max={300}
+                step={5}
+                disabled={disabled ?? false}
+                onValueChange={([v]) => onChange("facecamZoom", v ?? 100)}
+              />
+              <p className="text-sm text-muted-foreground">
+                100% = ukuran kotak pojok default. Naikkan untuk zoom lebih dekat ke wajah.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Geser ⟷</Label>
+                    <span className="font-display text-xs text-primary">
+                      {settings.facecamOffsetX}%
+                    </span>
+                  </div>
+                  <Slider
+                    className="mt-2"
+                    value={[settings.facecamOffsetX]}
+                    min={-50}
+                    max={50}
+                    step={1}
+                    disabled={disabled ?? false}
+                    onValueChange={([v]) => onChange("facecamOffsetX", v ?? 0)}
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Geser ⟷ vertikal</Label>
+                    <span className="font-display text-xs text-primary">
+                      {settings.facecamOffsetY}%
+                    </span>
+                  </div>
+                  <Slider
+                    className="mt-2"
+                    value={[settings.facecamOffsetY]}
+                    min={-50}
+                    max={50}
+                    step={1}
+                    disabled={disabled ?? false}
+                    onValueChange={([v]) => onChange("facecamOffsetY", v ?? 0)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-1">
+                <div className="relative h-16 w-28 shrink-0 overflow-hidden rounded border border-border bg-surface-2">
+                  <span
+                    className="absolute rounded-sm border border-primary bg-primary/25"
+                    style={{
+                      left: `${camPreview.x * 100}%`,
+                      top: `${camPreview.y * 100}%`,
+                      width: `${camPreview.w * 100}%`,
+                      height: `${camPreview.h * 100}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Kotak biru = area kamera yang diambil dari video sumber (16:9).
+                </p>
+              </div>
+            </div>
+
             <div className="mt-4 flex gap-2" aria-hidden>
               <div className="flex h-24 w-14 flex-col overflow-hidden rounded-md border border-primary/40">
                 <div
