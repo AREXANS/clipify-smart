@@ -2,6 +2,8 @@ import { Download, ExternalLink, FileVideo, Loader2, Sparkles } from "lucide-rea
 import { formatTimecode, type ClipResult, type ClipSettings } from "@/lib/clip-settings";
 import { ClipRender } from "@/components/clipper/clip-render";
 import { ClipEmbed } from "@/components/clipper/clip-embed";
+import { ShortsKit } from "@/components/clipper/shorts-kit";
+
 
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
