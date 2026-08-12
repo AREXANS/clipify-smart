@@ -49,6 +49,7 @@ export function ClipCard({
         <article className="glass-panel overflow-hidden rounded-xl p-3">
           <ClipRender clip={clip} settings={settings} sourceUrl={sourceUrl} index={index} />
           {body}
+          <ShortsKit clip={clip} />
         </article>
       );
     }
@@ -62,10 +63,12 @@ export function ClipCard({
             Pratinjau hasil edit (durasi potongan). Unggah MP4 sumber untuk merender dan
             mengunduh file.
           </p>
+          <ShortsKit clip={clip} />
         </article>
       );
     }
   }
+
 
 
   return (
