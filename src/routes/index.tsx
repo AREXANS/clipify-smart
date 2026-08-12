@@ -58,12 +58,18 @@ function Index() {
   const [submitting, setSubmitting] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
   const resultsRef = useRef<HTMLDivElement | null>(null);
-  const [sourceUrl, setSourceUrl] = useState<string | null>(null);
+  const [uploadUrl, setUploadUrl] = useState<string | null>(null);
   const [sourceName, setSourceName] = useState<string | null>(null);
+
+  const videoId = job?.clips.find((c) => c.videoId)?.videoId;
+  // Default: stream langsung dari YouTube lewat proxy same-origin (dukungan Range,
+  // jadi video panjang pun cukup di-seek ke rentang klip). File unggahan opsional.
+  const sourceUrl =
+    uploadUrl ?? (videoId ? `/api/public/yt-stream?v=${videoId}` : null);
 
   const handleSourceFile = (file: File | undefined) => {
     if (!file) return;
-    setSourceUrl((prev) => {
+    setUploadUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return URL.createObjectURL(file);
     });
