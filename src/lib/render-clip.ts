@@ -18,6 +18,7 @@ export type Rect = { x: number; y: number; w: number; h: number };
 
 /** Area sumber facecam pada video asli (fraksi 0–1). */
 export const FACECAM_SOURCES: Record<ClipSettings["facecamSource"], Rect> = {
+  auto: { x: 0, y: 0, w: 0.3, h: 0.36 },
   "top-left": { x: 0, y: 0, w: 0.3, h: 0.36 },
   "top-right": { x: 0.7, y: 0, w: 0.3, h: 0.36 },
   "bottom-left": { x: 0, y: 0.64, w: 0.3, h: 0.36 },
