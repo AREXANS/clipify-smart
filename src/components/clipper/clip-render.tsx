@@ -152,6 +152,7 @@ export function ClipRender({
         sourceUrl,
         clip,
         settings,
+        facecamRect,
         onProgress: setRenderProgress,
       });
       setOutput({ url: result.url, extension: result.extension, size: result.blob.size });
