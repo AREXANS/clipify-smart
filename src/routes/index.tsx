@@ -61,7 +61,6 @@ function Index() {
   const [uploadUrl, setUploadUrl] = useState<string | null>(null);
   const [sourceName, setSourceName] = useState<string | null>(null);
 
-  const videoId = job?.clips.find((c) => c.videoId)?.videoId;
   // YouTube menolak proxy media dari sebagian alamat server produksi. Preview
   // memakai player resmi YouTube; file lokal hanya dipakai untuk render/export.
   const sourceUrl = uploadUrl;
