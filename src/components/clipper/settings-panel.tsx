@@ -227,7 +227,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
                 </div>
                 <div>
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm">Geser ⟷ vertikal</Label>
+                    <Label className="text-sm">Geser ↕</Label>
                     <span className="font-display text-xs text-primary">
                       {settings.facecamOffsetY}%
                     </span>
