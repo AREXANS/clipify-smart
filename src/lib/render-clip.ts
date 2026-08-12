@@ -353,7 +353,7 @@ export async function renderClipToFile(options: {
     let raf = 0;
     const tick = () => {
       const elapsed = video.currentTime - clip.startSeconds;
-      drawClipFrame({ ctx, video, settings, clip, elapsed });
+      drawClipFrame({ ctx, video, settings, clip, elapsed, facecamRect: faceRect });
       onProgress?.(Math.min(1, Math.max(0, elapsed / duration)));
       if (signal?.aborted || elapsed >= duration || video.ended) {
         cancelAnimationFrame(raf);
