@@ -39,12 +39,46 @@ export function ClipRender({
   const [elapsed, setElapsed] = useState(0);
   const [rendering, setRendering] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
+  const [facecamRect, setFacecamRect] = useState<Rect | null>(null);
+  const facecamRef = useRef<Rect | null>(null);
   const [output, setOutput] = useState<{ url: string; extension: string; size: number } | null>(
     null,
   );
 
   const duration = Math.max(1, clip.endSeconds - clip.startSeconds);
   const size = OUTPUT_SIZE[settings.aspectRatio];
+
+  facecamRef.current = facecamRect;
+
+  // Deteksi kotak facecam dari frame video sungguhan (bukan thumbnail YouTube).
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (settings.layout !== "split" || settings.facecamSource !== "auto") {
+      setFacecamRect(null);
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      if (!video.videoWidth) {
+        await new Promise<void>((resolve) => {
+          video.addEventListener("loadeddata", () => resolve(), { once: true });
+          setTimeout(resolve, 3000);
+        });
+      }
+      if (cancelled) return;
+      const rect = await detectFacecamRect({
+        video,
+        startSeconds: clip.startSeconds,
+        endSeconds: clip.endSeconds,
+      }).catch(() => null);
+      if (!cancelled) setFacecamRect(rect);
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [sourceUrl, settings.layout, settings.facecamSource, clip.startSeconds, clip.endSeconds]);
 
   // Frame statis awal klip agar kartu tidak kosong.
   useEffect(() => {
@@ -54,13 +88,22 @@ export function ClipRender({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const onSeeked = () => {
-      if (!playing) drawClipFrame({ ctx, video, settings, clip, elapsed: 0 });
+      if (!playing && !rendering) {
+        drawClipFrame({
+          ctx,
+          video,
+          settings,
+          clip,
+          elapsed: 0,
+          facecamRect: facecamRef.current,
+        });
+      }
     };
     video.addEventListener("seeked", onSeeked);
     video.currentTime = clip.startSeconds + 0.05;
     return () => video.removeEventListener("seeked", onSeeked);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sourceUrl, settings, clip.id, playing]);
+  }, [sourceUrl, settings, clip.id, playing, rendering, facecamRect]);
 
   const stop = () => {
     cancelAnimationFrame(rafRef.current);
