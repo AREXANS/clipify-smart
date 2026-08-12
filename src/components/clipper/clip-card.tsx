@@ -51,7 +51,16 @@ export function ClipCard({
   return (
     <article className="glass-panel overflow-hidden rounded-xl">
       <div className={`relative ${RATIO_CLASS[settings.aspectRatio]} bg-background`}>
-        {ready ? (
+        {ready && clip.previewUrl ? (
+          <iframe
+            src={clip.previewUrl}
+            title={`Preview ${clip.title}`}
+            className="absolute inset-0 size-full border-0"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : ready ? (
           <>
             <div className="absolute inset-0 grid-backdrop opacity-70" />
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-5 text-center">
@@ -60,9 +69,8 @@ export function ClipCard({
                 Butuh file sumber
               </p>
               <p className="text-sm text-muted-foreground">
-                Unggah file video MP4-nya di atas. Klip akan dipotong{" "}
-                {Math.round(clip.endSeconds - clip.startSeconds)} detik, di-split facecam
-                otomatis, dan bisa diunduh sebagai file hasil edit.
+                Preview tidak tersedia. Buka momennya di YouTube atau unggah MP4 untuk
+                membuat hasil edit {Math.round(clip.endSeconds - clip.startSeconds)} detik.
               </p>
             </div>
           </>
@@ -85,13 +93,6 @@ export function ClipCard({
         <span className="font-display pointer-events-none absolute top-2 left-2 z-40 rounded-md bg-background/80 px-2 py-1 text-[10px] tracking-widest">
           #{index + 1}
         </span>
-
-        {/* Static subtitle on thumbnail (only when not playing and ready) */}
-        {ready && settings.subtitles && (
-          <span className="pointer-events-none absolute inset-x-2 bottom-3 z-40 flex justify-center text-center opacity-0">
-            <SubtitleText style={settings.subtitleStyle} text={subtitleLine} />
-          </span>
-        )}
 
         {!ready ? <Progress value={clip.progress} className="absolute inset-x-0 bottom-0 z-40 h-1" /> : null}
       </div>
