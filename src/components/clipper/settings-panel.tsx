@@ -75,7 +75,9 @@ function ToggleRow({
 }
 
 export function SettingsPanel({ settings, onChange, disabled }: Props) {
+  const camPreview = resolveFacecamRect(settings);
   return (
+
     <div className="space-y-8">
       <section className="space-y-4">
         <SectionTitle
