@@ -2,6 +2,8 @@ import { Download, ExternalLink, FileVideo, Loader2, Sparkles } from "lucide-rea
 import { formatTimecode, type ClipResult, type ClipSettings } from "@/lib/clip-settings";
 import { ClipRender } from "@/components/clipper/clip-render";
 import { ClipEmbed } from "@/components/clipper/clip-embed";
+import { ShortsKit } from "@/components/clipper/shorts-kit";
+
 
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -49,6 +51,7 @@ export function ClipCard({
         <article className="glass-panel overflow-hidden rounded-xl p-3">
           <ClipRender clip={clip} settings={settings} sourceUrl={sourceUrl} index={index} />
           {body}
+          <ShortsKit clip={clip} />
         </article>
       );
     }
@@ -62,10 +65,12 @@ export function ClipCard({
             Pratinjau hasil edit (durasi potongan). Unggah MP4 sumber untuk merender dan
             mengunduh file.
           </p>
+          <ShortsKit clip={clip} />
         </article>
       );
     }
   }
+
 
 
   return (

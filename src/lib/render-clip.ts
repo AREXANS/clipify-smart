@@ -26,6 +26,33 @@ export const FACECAM_SOURCES: Record<ClipSettings["facecamSource"], Rect> = {
   full: { x: 0, y: 0, w: 1, h: 1 },
 };
 
+/**
+ * Area facecam final: preset/deteksi otomatis lalu diberi zoom manual dan
+ * geseran halus sesuai pengaturan pengguna.
+ */
+export function resolveFacecamRect(
+  settings: ClipSettings,
+  autoRect?: Rect | null,
+): Rect {
+  const base =
+    settings.facecamSource === "auto"
+      ? (autoRect ?? FACECAM_SOURCES.auto)
+      : (FACECAM_SOURCES[settings.facecamSource] ?? FACECAM_SOURCES.full);
+
+  const zoom = Math.max(0.6, (settings.facecamZoom ?? 100) / 100);
+  const w = Math.min(1, Math.max(0.05, base.w / zoom));
+  const h = Math.min(1, Math.max(0.05, base.h / zoom));
+  const cx = base.x + base.w / 2 + (settings.facecamOffsetX ?? 0) / 100;
+  const cy = base.y + base.h / 2 + (settings.facecamOffsetY ?? 0) / 100;
+
+  return {
+    x: Math.min(1 - w, Math.max(0, cx - w / 2)),
+    y: Math.min(1 - h, Math.max(0, cy - h / 2)),
+    w,
+    h,
+  };
+}
+
 /** Gambar potongan sumber ke tujuan dengan mode cover (tanpa distorsi). */
 function drawCover(
   ctx: CanvasRenderingContext2D,
@@ -197,9 +224,7 @@ export function drawClipFrame({
 
   if (settings.layout === "split") {
     const topH = Math.round((H * settings.facecamShare) / 100);
-    const preset = FACECAM_SOURCES[settings.facecamSource] ?? FULL;
-    const face =
-      settings.facecamSource === "auto" ? (facecamRect ?? preset) : preset;
+    const face = resolveFacecamRect(settings, facecamRect ?? null);
     drawCover(ctx, video, dims, face, { x: 0, y: 0, w: W, h: topH });
     drawCover(ctx, video, dims, FULL, { x: 0, y: topH, w: W, h: H - topH });
     ctx.fillStyle = "rgba(0,0,0,0.9)";

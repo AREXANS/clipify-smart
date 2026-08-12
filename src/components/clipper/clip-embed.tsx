@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Play, RotateCcw } from "lucide-react";
 import { formatTimecode, type ClipResult, type ClipSettings } from "@/lib/clip-settings";
-import { FACECAM_SOURCES, type Rect } from "@/lib/render-clip";
+import { FACECAM_SOURCES, resolveFacecamRect, type Rect } from "@/lib/render-clip";
 import { SubtitleText } from "@/components/clipper/subtitle-preview";
 
 const RATIO_VALUE: Record<ClipSettings["aspectRatio"], number> = {
@@ -203,7 +203,7 @@ export function ClipEmbed({
   }, [settings.subtitles, clip, elapsed, duration]);
 
   const showHook = settings.addHook && elapsed < 2.6;
-  const camRect = FACECAM_SOURCES[settings.facecamSource];
+  const camRect = resolveFacecamRect(settings);
   const gameRect = gameplayRect(settings);
   const split = settings.layout === "split";
   const camHeight = Math.min(70, Math.max(20, settings.facecamShare));

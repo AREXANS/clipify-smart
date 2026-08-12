@@ -1,6 +1,7 @@
 import type { ClipJob, ClipResult, ClipSettings } from "./clip-settings";
 import type { Highlight } from "./highlight-local.server";
 import { selectHighlightsLocal } from "./highlight-local.server";
+import { buildShortsMeta } from "./shorts-meta";
 import { cuesBetween, fetchVideoContext } from "./youtube.server";
 
 type ProviderConfig = { baseUrl: string; apiKey: string };
@@ -60,6 +61,13 @@ export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
   const clips: ClipResult[] = highlights.map((h, i) => {
     const clipCues = settings.subtitles ? cuesBetween(ctx.transcript, h.start, h.end) : [];
     const cueTexts = clipCues.map((c) => c.text).slice(0, 12);
+    const meta = buildShortsMeta({
+      clipTitle: h.title,
+      reason: h.reason,
+      videoTitle: ctx.title,
+      lines: cueTexts.length ? cueTexts : h.caption ? [h.caption] : [],
+      durationSeconds: h.end - h.start,
+    });
     return {
       id: `${ctx.videoId}-${i}-${Math.round(h.start)}`,
       title: h.title,
@@ -72,6 +80,9 @@ export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
       videoId: ctx.videoId,
       previewUrl: embedUrl(ctx.videoId, h.start, h.end),
       subtitleLines: cueTexts.length ? cueTexts : h.caption ? [h.caption] : [],
+      shortsTitle: meta.shortsTitle,
+      caption: meta.caption,
+      hashtags: meta.hashtags,
       subtitleCues: clipCues.length
         ? clipCues
         : h.caption
@@ -184,6 +195,9 @@ function normalizeProviderJob(
       videoId: source?.videoId,
       previewUrl: source?.previewUrl,
       subtitleLines: source?.subtitleLines,
+      shortsTitle: source?.shortsTitle,
+      caption: source?.caption,
+      hashtags: source?.hashtags,
       subtitleCues: source?.subtitleCues,
     };
   });
