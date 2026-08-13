@@ -79,18 +79,25 @@ function ToggleRow({
 
 export function SettingsPanel({ settings, onChange, disabled }: Props) {
   const camPreview = resolveFacecamRect(settings);
-  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
 
   const moveFacecam = (clientX: number, clientY: number, element: HTMLElement) => {
     const bounds = element.getBoundingClientRect();
-    const grab = dragRef.current;
-    if (!grab || bounds.width === 0 || bounds.height === 0) return;
-    const centerX = (clientX - bounds.left) / bounds.width - grab.dx;
-    const centerY = (clientY - bounds.top) / bounds.height - grab.dy;
-    const currentCenterX = camPreview.x + camPreview.w / 2;
-    const currentCenterY = camPreview.y + camPreview.h / 2;
-    const nextX = Math.max(-50, Math.min(50, settings.facecamOffsetX + (centerX - currentCenterX) * 100));
-    const nextY = Math.max(-50, Math.min(50, settings.facecamOffsetY + (centerY - currentCenterY) * 100));
+    const drag = dragRef.current;
+    if (!drag || bounds.width === 0 || bounds.height === 0) return;
+    const nextX = Math.max(
+      -50,
+      Math.min(50, drag.offsetX + ((clientX - drag.startX) / bounds.width) * 100),
+    );
+    const nextY = Math.max(
+      -50,
+      Math.min(50, drag.offsetY + ((clientY - drag.startY) / bounds.height) * 100),
+    );
     onChange("facecamOffsetX", Math.round(nextX));
     onChange("facecamOffsetY", Math.round(nextY));
   };
@@ -235,17 +242,16 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
                   className={`relative aspect-video w-full touch-none overflow-hidden rounded border border-border bg-surface-2 ${disabled ? "opacity-50" : "cursor-crosshair"}`}
                   onPointerDown={(event) => {
                     if (disabled) return;
-                    const bounds = event.currentTarget.getBoundingClientRect();
-                    const pointerX = (event.clientX - bounds.left) / bounds.width;
-                    const pointerY = (event.clientY - bounds.top) / bounds.height;
                     dragRef.current = {
-                      dx: pointerX - (camPreview.x + camPreview.w / 2),
-                      dy: pointerY - (camPreview.y + camPreview.h / 2),
+                      startX: event.clientX,
+                      startY: event.clientY,
+                      offsetX: settings.facecamOffsetX,
+                      offsetY: settings.facecamOffsetY,
                     };
                     event.currentTarget.setPointerCapture(event.pointerId);
                   }}
                   onPointerMove={(event) => {
-                    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                    if (dragRef.current) {
                       moveFacecam(event.clientX, event.clientY, event.currentTarget);
                     }
                   }}
@@ -262,7 +268,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
                     VIDEO SUMBER 16:9
                   </span>
                   <span
-                    className="absolute flex items-center justify-center rounded-sm border-2 border-primary bg-primary/25 shadow-sm"
+                    className="pointer-events-none absolute flex items-center justify-center rounded-sm border-2 border-primary bg-primary/25 shadow-sm"
                     style={{
                       left: `${camPreview.x * 100}%`,
                       top: `${camPreview.y * 100}%`,
