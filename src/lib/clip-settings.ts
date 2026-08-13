@@ -131,16 +131,35 @@ export type ClipJob = {
   transcriptAvailable?: boolean | undefined;
 };
 
-const YT_PATTERNS = [
-  /^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]{11}/,
-  /^https?:\/\/(www\.)?youtube\.com\/live\/[\w-]{11}/,
-  /^https?:\/\/(www\.)?youtube\.com\/shorts\/[\w-]{11}/,
-  /^https?:\/\/youtu\.be\/[\w-]{11}/,
-];
+export function getYoutubeVideoId(value: string): string | null {
+  try {
+    const input = value.trim();
+    const parsed = new URL(input.startsWith("http") ? input : `https://${input}`);
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+    let id = "";
+
+    if (host === "youtu.be") {
+      id = parsed.pathname.split("/").filter(Boolean)[0] ?? "";
+    } else if (host === "youtube.com" || host === "m.youtube.com") {
+      if (parsed.pathname === "/watch") id = parsed.searchParams.get("v") ?? "";
+      else if (/^\/(live|shorts|embed)\//.test(parsed.pathname)) {
+        id = parsed.pathname.split("/").filter(Boolean)[1] ?? "";
+      }
+    }
+
+    return /^[\w-]{11}$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+export function normalizeYoutubeUrl(value: string) {
+  const videoId = getYoutubeVideoId(value);
+  return videoId ? `https://www.youtube.com/watch?v=${videoId}` : value.trim();
+}
 
 export function isValidYoutubeUrl(url: string) {
-  const trimmed = url.trim();
-  return YT_PATTERNS.some((p) => p.test(trimmed));
+  return getYoutubeVideoId(url) !== null;
 }
 
 export function formatTimecode(seconds: number) {

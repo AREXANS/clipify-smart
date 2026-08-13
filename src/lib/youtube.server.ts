@@ -1,3 +1,5 @@
+import { getYoutubeVideoId } from "./clip-settings";
+
 export type TranscriptCue = { start: number; end: number; text: string };
 
 export type VideoContext = {
@@ -12,16 +14,7 @@ export type VideoContext = {
 };
 
 export function extractVideoId(url: string): string | null {
-  const patterns = [
-    /(?:youtube\.com\/watch\?(?:.*&)?v=)([\w-]{11})/,
-    /youtu\.be\/([\w-]{11})/,
-    /youtube\.com\/(?:live|shorts|embed)\/([\w-]{11})/,
-  ];
-  for (const p of patterns) {
-    const m = url.match(p);
-    if (m?.[1]) return m[1];
-  }
-  return null;
+  return getYoutubeVideoId(url);
 }
 
 function unescapeJson(value: string) {
@@ -33,17 +26,23 @@ function unescapeJson(value: string) {
 }
 
 async function fetchWatchPage(videoId: string) {
-  const res = await fetch(`https://www.youtube.com/watch?v=${videoId}&hl=id`, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36",
-      "Accept-Language": "id-ID,id;q=0.9,en;q=0.8",
-    },
-  });
-  if (!res.ok) {
-    throw new Error(`Tidak bisa membaca halaman YouTube [${res.status}].`);
+  const urls = [
+    `https://www.youtube.com/watch?v=${videoId}&hl=id`,
+    `https://m.youtube.com/watch?v=${videoId}&hl=id`,
+  ];
+  let lastStatus = 0;
+  for (const url of urls) {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36",
+        "Accept-Language": "id-ID,id;q=0.9,en;q=0.8",
+      },
+    });
+    lastStatus = res.status;
+    if (res.ok) return res.text();
   }
-  return res.text();
+  throw new Error(`Tidak bisa membaca halaman YouTube [${lastStatus}].`);
 }
 
 type CaptionTrack = { baseUrl: string; languageCode: string; kind?: string };

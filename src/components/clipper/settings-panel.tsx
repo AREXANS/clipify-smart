@@ -1,4 +1,5 @@
-import { Layers, ScanFace, Sparkles } from "lucide-react";
+import { useRef } from "react";
+import { Grip, Layers, ScanFace, Sparkles } from "lucide-react";
 import { SubtitleStylePreview } from "@/components/clipper/subtitle-preview";
 import { resolveFacecamRect } from "@/lib/render-clip";
 
@@ -78,6 +79,22 @@ function ToggleRow({
 
 export function SettingsPanel({ settings, onChange, disabled }: Props) {
   const camPreview = resolveFacecamRect(settings);
+  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
+
+  const moveFacecam = (clientX: number, clientY: number, element: HTMLElement) => {
+    const bounds = element.getBoundingClientRect();
+    const grab = dragRef.current;
+    if (!grab || bounds.width === 0 || bounds.height === 0) return;
+    const centerX = (clientX - bounds.left) / bounds.width - grab.dx;
+    const centerY = (clientY - bounds.top) / bounds.height - grab.dy;
+    const currentCenterX = camPreview.x + camPreview.w / 2;
+    const currentCenterY = camPreview.y + camPreview.h / 2;
+    const nextX = Math.max(-50, Math.min(50, settings.facecamOffsetX + (centerX - currentCenterX) * 100));
+    const nextY = Math.max(-50, Math.min(50, settings.facecamOffsetY + (centerY - currentCenterY) * 100));
+    onChange("facecamOffsetX", Math.round(nextX));
+    onChange("facecamOffsetY", Math.round(nextY));
+  };
+
   return (
 
     <div className="space-y-8">
@@ -207,57 +224,57 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
                 100% = ukuran kotak pojok default. Naikkan untuk zoom lebih dekat ke wajah.
               </p>
 
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm">Geser ⟷</Label>
-                    <span className="font-display text-xs text-primary">
-                      {settings.facecamOffsetX}%
-                    </span>
-                  </div>
-                  <Slider
-                    className="mt-2"
-                    value={[settings.facecamOffsetX]}
-                    min={-50}
-                    max={50}
-                    step={1}
-                    disabled={disabled ?? false}
-                    onValueChange={([v]) => onChange("facecamOffsetX", v ?? 0)}
-                  />
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between gap-3">
+                  <Label className="text-sm">Geser area facecam langsung</Label>
+                  <span className="font-display text-xs text-primary">
+                    X {settings.facecamOffsetX}% · Y {settings.facecamOffsetY}%
+                  </span>
                 </div>
-                <div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm">Geser ↕</Label>
-                    <span className="font-display text-xs text-primary">
-                      {settings.facecamOffsetY}%
-                    </span>
-                  </div>
-                  <Slider
-                    className="mt-2"
-                    value={[settings.facecamOffsetY]}
-                    min={-50}
-                    max={50}
-                    step={1}
-                    disabled={disabled ?? false}
-                    onValueChange={([v]) => onChange("facecamOffsetY", v ?? 0)}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 pt-1">
-                <div className="relative h-16 w-28 shrink-0 overflow-hidden rounded border border-border bg-surface-2">
+                <div
+                  className={`relative aspect-video w-full touch-none overflow-hidden rounded border border-border bg-surface-2 ${disabled ? "opacity-50" : "cursor-crosshair"}`}
+                  onPointerDown={(event) => {
+                    if (disabled) return;
+                    const bounds = event.currentTarget.getBoundingClientRect();
+                    const pointerX = (event.clientX - bounds.left) / bounds.width;
+                    const pointerY = (event.clientY - bounds.top) / bounds.height;
+                    dragRef.current = {
+                      dx: pointerX - (camPreview.x + camPreview.w / 2),
+                      dy: pointerY - (camPreview.y + camPreview.h / 2),
+                    };
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                  }}
+                  onPointerMove={(event) => {
+                    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                      moveFacecam(event.clientX, event.clientY, event.currentTarget);
+                    }
+                  }}
+                  onPointerUp={(event) => {
+                    dragRef.current = null;
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  }}
+                  onPointerCancel={() => {
+                    dragRef.current = null;
+                  }}
+                  aria-label="Area sumber video untuk menggeser kotak facecam"
+                >
+                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-muted-foreground/50">
+                    VIDEO SUMBER 16:9
+                  </span>
                   <span
-                    className="absolute rounded-sm border border-primary bg-primary/25"
+                    className="absolute flex items-center justify-center rounded-sm border-2 border-primary bg-primary/25 shadow-sm"
                     style={{
                       left: `${camPreview.x * 100}%`,
                       top: `${camPreview.y * 100}%`,
                       width: `${camPreview.w * 100}%`,
                       height: `${camPreview.h * 100}%`,
                     }}
-                  />
+                  >
+                    <Grip className="size-4 text-primary" />
+                  </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Kotak biru = area kamera yang diambil dari video sumber (16:9).
+                  Tekan lalu seret kotak biru ke posisi kamera pada video sumber.
                 </p>
               </div>
             </div>
