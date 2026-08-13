@@ -19,6 +19,7 @@ import { ClipCard } from "@/components/clipper/clip-card";
 import {
   DEFAULT_SETTINGS,
   isValidYoutubeUrl,
+  normalizeYoutubeUrl,
   type ClipJob,
   type ClipSettings,
 } from "@/lib/clip-settings";
@@ -109,7 +110,8 @@ function Index() {
     setUrlError(null);
     setSubmitting(true);
     try {
-      const created = await submitJob({ data: { ...settings, url: settings.url.trim() } });
+      const canonicalUrl = normalizeYoutubeUrl(settings.url);
+      const created = await submitJob({ data: { ...settings, url: canonicalUrl } });
       setJob(created);
       if (created.status === "failed") {
         toast.error(created.message ?? "Analisis gagal.");
