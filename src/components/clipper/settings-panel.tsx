@@ -79,24 +79,22 @@ function ToggleRow({
 
 export function SettingsPanel({ settings, onChange, disabled }: Props) {
   const camPreview = resolveFacecamRect(settings);
-  const dragRef = useRef<{
-    startX: number;
-    startY: number;
-    offsetX: number;
-    offsetY: number;
-  } | null>(null);
+  const draggingRef = useRef(false);
 
   const moveFacecam = (clientX: number, clientY: number, element: HTMLElement) => {
     const bounds = element.getBoundingClientRect();
-    const drag = dragRef.current;
-    if (!drag || bounds.width === 0 || bounds.height === 0) return;
+    if (!draggingRef.current || bounds.width === 0 || bounds.height === 0) return;
+    const pointerX = (clientX - bounds.left) / bounds.width;
+    const pointerY = (clientY - bounds.top) / bounds.height;
+    const baseCenterX = camPreview.x + camPreview.w / 2 - settings.facecamOffsetX / 100;
+    const baseCenterY = camPreview.y + camPreview.h / 2 - settings.facecamOffsetY / 100;
     const nextX = Math.max(
       -50,
-      Math.min(50, drag.offsetX + ((clientX - drag.startX) / bounds.width) * 100),
+      Math.min(50, (pointerX - baseCenterX) * 100),
     );
     const nextY = Math.max(
       -50,
-      Math.min(50, drag.offsetY + ((clientY - drag.startY) / bounds.height) * 100),
+      Math.min(50, (pointerY - baseCenterY) * 100),
     );
     onChange("facecamOffsetX", Math.round(nextX));
     onChange("facecamOffsetY", Math.round(nextY));
@@ -239,28 +237,25 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
                   </span>
                 </div>
                 <div
-                  className={`relative aspect-video w-full touch-none overflow-hidden rounded border border-border bg-surface-2 ${disabled ? "opacity-50" : "cursor-crosshair"}`}
+                  className={`relative aspect-video w-full touch-none select-none overflow-hidden rounded border border-border bg-surface-2 ${disabled ? "opacity-50" : "cursor-crosshair"}`}
                   onPointerDown={(event) => {
                     if (disabled) return;
-                    dragRef.current = {
-                      startX: event.clientX,
-                      startY: event.clientY,
-                      offsetX: settings.facecamOffsetX,
-                      offsetY: settings.facecamOffsetY,
-                    };
+                    event.preventDefault();
+                    draggingRef.current = true;
                     event.currentTarget.setPointerCapture(event.pointerId);
+                    moveFacecam(event.clientX, event.clientY, event.currentTarget);
                   }}
                   onPointerMove={(event) => {
-                    if (dragRef.current) {
+                    if (draggingRef.current) {
                       moveFacecam(event.clientX, event.clientY, event.currentTarget);
                     }
                   }}
                   onPointerUp={(event) => {
-                    dragRef.current = null;
+                    draggingRef.current = false;
                     event.currentTarget.releasePointerCapture(event.pointerId);
                   }}
                   onPointerCancel={() => {
-                    dragRef.current = null;
+                    draggingRef.current = false;
                   }}
                   aria-label="Area sumber video untuk menggeser kotak facecam"
                 >
