@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Grip, Layers, ScanFace, Sparkles } from "lucide-react";
 import { SubtitleStylePreview } from "@/components/clipper/subtitle-preview";
-import { resolveFacecamRect } from "@/lib/render-clip";
+import { FACECAM_SOURCES, resolveFacecamRect } from "@/lib/render-clip";
 
 import {
   ASPECT_RATIOS,
