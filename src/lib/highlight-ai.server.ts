@@ -21,9 +21,9 @@ const aiOutputSchema = z.object({
 });
 
 function buildPrompt(ctx: VideoContext, settings: ClipSettings, buckets: string[]) {
-  const chapters = ctx.chapters
-    .map((c) => `- ${formatTime(c.start)} (${c.start}s): ${c.title}`)
-    .join("\n") || "Tidak ada chapter.";
+  const chapters =
+    ctx.chapters.map((c) => `- ${formatTime(c.start)} (${c.start}s): ${c.title}`).join("\n") ||
+    "Tidak ada chapter.";
 
   const transcript = buckets.join("\n");
 

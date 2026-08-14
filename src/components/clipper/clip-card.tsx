@@ -6,10 +6,8 @@ import { ClipEmbed } from "@/components/clipper/clip-embed";
 import { ClipTrim } from "@/components/clipper/clip-trim";
 import { ShortsKit } from "@/components/clipper/shorts-kit";
 
-
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-
 
 const RATIO_CLASS: Record<ClipSettings["aspectRatio"], string> = {
   "9:16": "aspect-[9/16]",
@@ -89,17 +87,14 @@ export function ClipCard({
             <Download className="size-4" /> Siapkan render &amp; unduh
           </Button>
           <p className="px-1 pt-2 text-sm text-muted-foreground">
-            Render langsung dari YouTube bersifat percobaan. Jika gagal, unggah MP4 sumber di
-            bagian atas halaman.
+            Render langsung dari YouTube bersifat percobaan. Jika gagal, unggah MP4 sumber di bagian
+            atas halaman.
           </p>
           <ShortsKit clip={clip} />
         </article>
       );
     }
   }
-
-
-
 
   return (
     <article className="glass-panel overflow-hidden rounded-xl">
@@ -118,12 +113,10 @@ export function ClipCard({
             <div className="absolute inset-0 grid-backdrop opacity-70" />
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-5 text-center">
               <FileVideo className="size-7 text-primary" />
-              <p className="font-display text-sm tracking-widest uppercase">
-                Butuh file sumber
-              </p>
+              <p className="font-display text-sm tracking-widest uppercase">Butuh file sumber</p>
               <p className="text-sm text-muted-foreground">
-                Preview tidak tersedia. Buka momennya di YouTube atau unggah MP4 untuk
-                membuat hasil edit {Math.round(clip.endSeconds - clip.startSeconds)} detik.
+                Preview tidak tersedia. Buka momennya di YouTube atau unggah MP4 untuk membuat hasil
+                edit {Math.round(clip.endSeconds - clip.startSeconds)} detik.
               </p>
             </div>
           </>
@@ -147,7 +140,9 @@ export function ClipCard({
           #{index + 1}
         </span>
 
-        {!ready ? <Progress value={clip.progress} className="absolute inset-x-0 bottom-0 z-40 h-1" /> : null}
+        {!ready ? (
+          <Progress value={clip.progress} className="absolute inset-x-0 bottom-0 z-40 h-1" />
+        ) : null}
       </div>
 
       <div className="space-y-3 p-4">

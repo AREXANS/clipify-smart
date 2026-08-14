@@ -7,17 +7,11 @@ const settingsSchema = z.object({
   aspectRatio: z.enum(["9:16", "1:1", "4:5", "16:9"]),
   layout: z.enum(["auto", "split", "gameplay"]),
   facecamShare: z.number().min(10).max(80),
-  facecamSource: z.enum([
-    "auto",
-    "top-left",
-    "top-right",
-    "bottom-left",
-    "bottom-right",
-    "full",
-  ]),
+  facecamSource: z.enum(["auto", "top-left", "top-right", "bottom-left", "bottom-right", "full"]),
   facecamZoom: z.number().min(60).max(300),
-  facecamOffsetX: z.number().min(-50).max(50),
-  facecamOffsetY: z.number().min(-50).max(50),
+  facecamOffsetX: z.number().min(-100).max(100),
+  facecamOffsetY: z.number().min(-100).max(100),
+  subtitleOffsetY: z.number().min(-50).max(50),
   subtitles: z.boolean(),
   subtitleStyle: z.enum(["karaoke", "bold", "minimal"]),
   subtitleLanguage: z.string().min(2).max(5),
@@ -33,9 +27,7 @@ const settingsSchema = z.object({
 export const createClipJob = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => settingsSchema.parse(input))
   .handler(async ({ data }): Promise<ClipJob> => {
-    const { analyzeVideo, createProviderJob, getProviderConfig } = await import(
-      "./clipper.server"
-    );
+    const { analyzeVideo, createProviderJob, getProviderConfig } = await import("./clipper.server");
     const analysis = await analyzeVideo(data);
     const config = getProviderConfig();
     if (!config || analysis.status === "failed") return analysis;
@@ -43,9 +35,7 @@ export const createClipJob = createServerFn({ method: "POST" })
   });
 
 export const getClipJob = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) =>
-    z.object({ jobId: z.string().min(1) }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ jobId: z.string().min(1) }).parse(input))
   .handler(async ({ data }): Promise<ClipJob> => {
     const { fetchProviderJob, getProviderConfig } = await import("./clipper.server");
     const config = getProviderConfig();

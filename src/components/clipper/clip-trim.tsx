@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import { Scissors } from "lucide-react";
 import { formatTimecode, type ClipResult } from "@/lib/clip-settings";
 import { Slider } from "@/components/ui/slider";
@@ -14,8 +15,13 @@ export function ClipTrim({
   onTrim: (start: number, end: number) => void;
 }) {
   const span = 45;
-  const min = Math.max(0, Math.round(clip.startSeconds - span));
-  const max = Math.round(clip.endSeconds + span);
+
+  // Lock the boundaries on first render to prevent slider jumping
+  const [bounds] = useState({
+    min: Math.max(0, Math.round(clip.startSeconds - span)),
+    max: Math.round(clip.endSeconds + span),
+  });
+
   const duration = Math.round(clip.endSeconds - clip.startSeconds);
 
   return (
@@ -30,8 +36,8 @@ export function ClipTrim({
       </div>
       <Slider
         value={[Math.round(clip.startSeconds), Math.round(clip.endSeconds)]}
-        min={min}
-        max={max}
+        min={bounds.min}
+        max={bounds.max}
         step={1}
         minStepsBetweenThumbs={3}
         aria-label={`Durasi klip ${clip.title}`}

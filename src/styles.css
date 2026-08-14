@@ -132,16 +132,8 @@
     font-family: var(--font-sans);
     font-size: 1.0625rem;
     background-image:
-      radial-gradient(
-        ellipse 70% 55% at 50% -10%,
-        oklch(0.55 0.19 245 / 30%),
-        transparent 70%
-      ),
-      radial-gradient(
-        ellipse 50% 40% at 92% 8%,
-        oklch(0.6 0.18 285 / 18%),
-        transparent 70%
-      );
+      radial-gradient(ellipse 70% 55% at 50% -10%, oklch(0.55 0.19 245 / 30%), transparent 70%),
+      radial-gradient(ellipse 50% 40% at 92% 8%, oklch(0.6 0.18 285 / 18%), transparent 70%);
     background-attachment: fixed;
   }
 
@@ -165,11 +157,7 @@
 }
 
 @utility glass-panel {
-  background: linear-gradient(
-    160deg,
-    oklch(0.26 0.055 258 / 85%),
-    oklch(0.19 0.05 258 / 85%)
-  );
+  background: linear-gradient(160deg, oklch(0.26 0.055 258 / 85%), oklch(0.19 0.05 258 / 85%));
   border: 1px solid var(--color-border);
   box-shadow:
     0 0 0 1px oklch(0.72 0.16 240 / 6%) inset,
@@ -188,12 +176,7 @@
 
 @utility neon-divider {
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    oklch(0.72 0.16 240 / 70%),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, oklch(0.72 0.16 240 / 70%), transparent);
 }
 
 @utility scan-sheen {

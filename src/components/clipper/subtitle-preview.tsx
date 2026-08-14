@@ -1,6 +1,7 @@
 import type { SubtitleStyle } from "@/lib/clip-settings";
 
-const OUTLINE = "0 2px 0 #000, 0 -2px 0 #000, 2px 0 0 #000, -2px 0 0 #000, 2px 2px 0 #000, -2px -2px 0 #000";
+const OUTLINE =
+  "0 2px 0 #000, 0 -2px 0 #000, 2px 0 0 #000, -2px 0 0 #000, 2px 2px 0 #000, -2px -2px 0 #000";
 
 export function SubtitleText({
   style,

@@ -68,11 +68,7 @@ function ToggleRow({
         <p className="text-[0.95rem] leading-tight font-semibold">{label}</p>
         <p className="text-sm text-muted-foreground">{desc}</p>
       </div>
-      <Switch
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        disabled={disabled ?? false}
-      />
+      <Switch checked={checked} onCheckedChange={onCheckedChange} disabled={disabled ?? false} />
     </div>
   );
 }
@@ -80,6 +76,7 @@ function ToggleRow({
 export function SettingsPanel({ settings, onChange, disabled }: Props) {
   const camPreview = resolveFacecamRect(settings);
   const draggingRef = useRef(false);
+  const subDraggingRef = useRef(false);
 
   const moveFacecam = (clientX: number, clientY: number, element: HTMLElement) => {
     const bounds = element.getBoundingClientRect();
@@ -96,9 +93,17 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
     onChange("facecamOffsetY", Math.round(clamp((pointerY - baseCenterY) * 100)));
   };
 
+  const moveSubtitle = (clientY: number, element: HTMLElement) => {
+    const bounds = element.getBoundingClientRect();
+    if (!subDraggingRef.current || bounds.height === 0) return;
+    const pointerY = (clientY - bounds.top) / bounds.height;
+    // Base center for subtitle is approximately 0.9 (90% from top) based on render-clip logic
+    const baseCenterY = 0.9;
+    const clamp = (v: number) => Math.max(-50, Math.min(50, v));
+    onChange("subtitleOffsetY", Math.round(clamp((pointerY - baseCenterY) * 100)));
+  };
 
   return (
-
     <div className="space-y-8">
       <section className="space-y-4">
         <SectionTitle
@@ -153,9 +158,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
                   <span className="block text-[0.95rem] leading-tight font-semibold">
                     {mode.label}
                   </span>
-                  <span className="block text-sm text-muted-foreground">
-                    {mode.desc}
-                  </span>
+                  <span className="block text-sm text-muted-foreground">{mode.desc}</span>
                 </span>
               </button>
             );
@@ -166,9 +169,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
           <div className="rounded-lg border border-border bg-surface/60 px-4 py-4">
             <div className="mb-3 flex items-center justify-between">
               <Label className="text-[0.95rem]">Porsi tinggi facecam</Label>
-              <span className="font-display text-sm text-primary">
-                {settings.facecamShare}%
-              </span>
+              <span className="font-display text-sm text-primary">{settings.facecamShare}%</span>
             </div>
             <Slider
               value={[settings.facecamShare]}
@@ -186,9 +187,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
               <Label className="text-[0.95rem]">Posisi facecam di video sumber</Label>
               <Select
                 value={settings.facecamSource}
-                onValueChange={(v) =>
-                  onChange("facecamSource", v as ClipSettings["facecamSource"])
-                }
+                onValueChange={(v) => onChange("facecamSource", v as ClipSettings["facecamSource"])}
                 disabled={disabled ?? false}
               >
                 <SelectTrigger>
@@ -210,9 +209,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
             <div className="mt-4 space-y-3 rounded-lg border border-border bg-surface/40 px-3 py-3">
               <div className="flex items-center justify-between">
                 <Label className="text-[0.95rem]">Zoom facecam</Label>
-                <span className="font-display text-sm text-primary">
-                  {settings.facecamZoom}%
-                </span>
+                <span className="font-display text-sm text-primary">{settings.facecamZoom}%</span>
               </div>
               <Slider
                 value={[settings.facecamZoom]}
@@ -362,6 +359,55 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="mt-4 space-y-3 rounded-lg border border-border bg-surface/40 px-3 py-3">
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between gap-3">
+                  <Label className="text-sm">Geser area subtitle langsung</Label>
+                  <span className="font-display text-xs text-primary">
+                    Y {settings.subtitleOffsetY}%
+                  </span>
+                </div>
+                <div
+                  className={`relative aspect-[9/16] max-h-48 w-full touch-none select-none overflow-hidden rounded border border-border bg-surface-2 ${disabled ? "opacity-50" : "cursor-ns-resize"}`}
+                  onPointerDown={(event) => {
+                    if (disabled) return;
+                    event.preventDefault();
+                    subDraggingRef.current = true;
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    moveSubtitle(event.clientY, event.currentTarget);
+                  }}
+                  onPointerMove={(event) => {
+                    if (subDraggingRef.current) {
+                      moveSubtitle(event.clientY, event.currentTarget);
+                    }
+                  }}
+                  onPointerUp={(event) => {
+                    subDraggingRef.current = false;
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  }}
+                  onPointerCancel={() => {
+                    subDraggingRef.current = false;
+                  }}
+                  aria-label="Area untuk menggeser subtitle secara vertikal"
+                >
+                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-muted-foreground/50 text-center">
+                    Geser Atas/Bawah
+                  </span>
+                  <span
+                    className="pointer-events-none absolute flex items-center justify-center border-b-2 border-primary w-3/4 left-[12.5%] shadow-sm"
+                    style={{
+                      top: `${90 + settings.subtitleOffsetY}%`,
+                    }}
+                  >
+                    <Grip className="size-4 text-primary absolute -top-2 bg-background rounded-full" />
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Tekan lalu seret garis biru untuk mengatur posisi tinggi subtitle.
+                </p>
+              </div>
+            </div>
           </div>
         ) : null}
       </section>
@@ -386,9 +432,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
         <div className="rounded-lg border border-border bg-surface/60 px-4 py-4">
           <div className="mb-3 flex items-center justify-between">
             <Label className="text-[0.95rem]">Jumlah klip</Label>
-            <span className="font-display text-sm text-primary">
-              {settings.clipCount}
-            </span>
+            <span className="font-display text-sm text-primary">{settings.clipCount}</span>
           </div>
           <Slider
             value={[settings.clipCount]}

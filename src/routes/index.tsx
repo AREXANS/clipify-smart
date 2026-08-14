@@ -1,15 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  Cpu,
-  FileVideo,
-  Link2,
-  Loader2,
-  ScissorsLineDashed,
-  Youtube,
-  Zap,
-} from "lucide-react";
+import { Cpu, FileVideo, Link2, Loader2, ScissorsLineDashed, Youtube, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
@@ -81,12 +73,9 @@ function Index() {
   const submitJob = useServerFn(createClipJob);
   const pollJob = useServerFn(getClipJob);
 
-  const update = useCallback(
-    <K extends keyof ClipSettings>(key: K, value: ClipSettings[K]) => {
-      setSettings((prev) => ({ ...prev, [key]: value }));
-    },
-    [],
-  );
+  const update = useCallback(<K extends keyof ClipSettings>(key: K, value: ClipSettings[K]) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   useEffect(() => {
     if (!job || job.status === "completed" || job.status === "failed") return;
@@ -161,8 +150,8 @@ function Index() {
               puluhan klip viral.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
-              Tempel URL siaran atau VOD kamu. ClipForge memilih momen terbaik, memisahkan
-              facecam dari gameplay, dan menempel subtitle otomatis.
+              Tempel URL siaran atau VOD kamu. ClipForge memilih momen terbaik, memisahkan facecam
+              dari gameplay, dan menempel subtitle otomatis.
             </p>
           </div>
 
@@ -195,9 +184,7 @@ function Index() {
                 Generate klip
               </Button>
             </div>
-            {urlError ? (
-              <p className="px-3 py-2 text-sm text-destructive">{urlError}</p>
-            ) : null}
+            {urlError ? <p className="px-3 py-2 text-sm text-destructive">{urlError}</p> : null}
 
             <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border bg-surface/50 px-4 py-3 text-left transition-colors hover:border-primary/60">
               <FileVideo className="size-5 shrink-0 text-primary" />
@@ -206,8 +193,8 @@ function Index() {
                   {sourceName ?? "Unggah MP4 untuk render dan unduh"}
                 </span>
                 <span className="block text-sm text-muted-foreground">
-                  Tanpa unggahan, momen tetap bisa dipreview lewat YouTube. File sumber
-                  diperlukan hanya untuk membuat dan mengunduh hasil edit.
+                  Tanpa unggahan, momen tetap bisa dipreview lewat YouTube. File sumber diperlukan
+                  hanya untuk membuat dan mengunduh hasil edit.
                 </span>
               </span>
               <input
@@ -237,21 +224,13 @@ function Index() {
       <main className="mx-auto max-w-6xl px-5 pb-24">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
           <div className="glass-panel h-fit rounded-2xl p-6 lg:sticky lg:top-6">
-            <h2 className="font-display mb-6 text-base tracking-widest uppercase">
-              Pengaturan
-            </h2>
-            <SettingsPanel
-              settings={settings}
-              onChange={update}
-              disabled={submitting}
-            />
+            <h2 className="font-display mb-6 text-base tracking-widest uppercase">Pengaturan</h2>
+            <SettingsPanel settings={settings} onChange={update} disabled={submitting} />
           </div>
 
           <div ref={resultsRef} className="space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-base tracking-widest uppercase">
-                Hasil klip
-              </h2>
+              <h2 className="font-display text-base tracking-widest uppercase">Hasil klip</h2>
               {job ? (
                 <span className="text-sm text-muted-foreground">
                   {readyCount}/{job.clips.length} klip siap
@@ -268,23 +247,19 @@ function Index() {
             {submitting ? (
               <div className="glass-panel flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl p-10 text-center">
                 <Loader2 className="size-7 animate-spin text-primary" />
-                <p className="font-display text-sm tracking-widest uppercase">
-                  Menganalisis video
-                </p>
+                <p className="font-display text-sm tracking-widest uppercase">Menganalisis video</p>
                 <p className="max-w-sm text-muted-foreground">
-                  Mengambil transkrip asli video lalu memilih momen terbaik dengan AI.
-                  Proses ini bisa memakan 10–40 detik untuk VOD panjang.
+                  Mengambil transkrip asli video lalu memilih momen terbaik dengan AI. Proses ini
+                  bisa memakan 10–40 detik untuk VOD panjang.
                 </p>
               </div>
             ) : !job ? (
               <div className="glass-panel flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl p-10 text-center">
                 <ScissorsLineDashed className="size-8 text-primary" />
-                <p className="font-display text-sm tracking-widest uppercase">
-                  Belum ada klip
-                </p>
+                <p className="font-display text-sm tracking-widest uppercase">Belum ada klip</p>
                 <p className="max-w-sm text-muted-foreground">
-                  Tempel URL YouTube di atas, atur preferensi di panel kiri, lalu tekan
-                  Generate klip. Unggah MP4 jika ingin merender hasil edit.
+                  Tempel URL YouTube di atas, atur preferensi di panel kiri, lalu tekan Generate
+                  klip. Unggah MP4 jika ingin merender hasil edit.
                 </p>
               </div>
             ) : (
@@ -313,7 +288,6 @@ function Index() {
                   />
                 ))}
               </div>
-
             )}
           </div>
         </div>

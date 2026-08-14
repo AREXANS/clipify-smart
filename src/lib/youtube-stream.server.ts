@@ -39,8 +39,7 @@ const CLIENT_CONTEXT = {
   },
 };
 
-const STREAM_UA =
-  "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X)";
+const STREAM_UA = "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X)";
 
 async function requestPlayer(videoId: string) {
   const res = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
@@ -153,6 +152,4 @@ export async function streamVideoRange(videoId: string, range: string | null) {
 
   // Selalu 206 supaya browser tahu ini potongan dan meminta sisanya.
   return new Response(upstream.body, { status: 206, headers });
-
 }
-

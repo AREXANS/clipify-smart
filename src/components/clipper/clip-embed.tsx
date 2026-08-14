@@ -18,9 +18,7 @@ function gameplayRect(settings: ClipSettings): Rect {
   if (settings.facecamSource === "full") return { x: 0.2, y: 0.06, w: 0.6, h: 0.88 };
   // Hindari sisi tempat facecam berada agar gameplay tetap bersih.
   const fromLeft = cam.x < 0.5;
-  return fromLeft
-    ? { x: 0.32, y: 0.06, w: 0.5, h: 0.88 }
-    : { x: 0.18, y: 0.06, w: 0.5, h: 0.88 };
+  return fromLeft ? { x: 0.32, y: 0.06, w: 0.5, h: 0.88 } : { x: 0.18, y: 0.06, w: 0.5, h: 0.88 };
 }
 
 type PaneProps = {
@@ -46,7 +44,7 @@ function CropPane({ videoId, start, end, rect, muted, playerId, onTime, onReady 
     const measure = () => {
       const r = host.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) {
-        const w = Math.max(r.width / rect.w, ((r.height * 16) / 9) / rect.h);
+        const w = Math.max(r.width / rect.w, (r.height * 16) / 9 / rect.h);
         setBox({ w, h: (w * 9) / 16 });
       }
     };
@@ -62,10 +60,7 @@ function CropPane({ videoId, start, end, rect, muted, playerId, onTime, onReady 
     const handshake = () => {
       const win = frame.contentWindow;
       if (!win) return;
-      win.postMessage(
-        JSON.stringify({ event: "listening", id: playerId, channel: "widget" }),
-        "*",
-      );
+      win.postMessage(JSON.stringify({ event: "listening", id: playerId, channel: "widget" }), "*");
       onReady?.(win);
     };
     frame.addEventListener("load", handshake);
