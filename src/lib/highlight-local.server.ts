@@ -103,13 +103,23 @@ export function selectHighlightsLocal(
       const start = offset + i * gap;
       if (total && start + clipLen > total) break;
       // Judul mengikuti chapter yang mencakup momen; kalau tidak ada, pakai
-      // judul video + penanda menit agar tetap spesifik, bukan "Momen Seru".
+      // judul video + penanda waktu agar tiap klip punya judul berbeda.
       const chapter = [...ctx.chapters].filter((c) => c.start <= start + clipLen / 2).pop();
-      const videoLabel =
-        ctx.title.split(/[|\-–—•]/)[0]?.replace(/\s+/g, " ").trim().slice(0, 42) ?? "";
-      const fallback = `${videoLabel || "Highlight"} — Menit ${Math.floor(start / 60)}`;
+      const videoLabel = (ctx.title.split(/[|\-–—•]/)[0] ?? "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .split(" ")
+        .slice(0, 6)
+        .join(" ");
+      const mark = `${String(Math.floor(start / 60)).padStart(2, "0")}:${String(
+        Math.floor(start % 60),
+      ).padStart(2, "0")}`;
+      const base = chapter
+        ? titleFrom(chapter.title, settings.addHook)
+        : titleFrom(videoLabel || "Highlight", settings.addHook);
       candidates.push({
-        title: titleFrom(chapter?.title ?? fallback, settings.addHook),
+        title: `${base} · Menit ${mark}`.slice(0, 96),
+
         start,
         end: start + clipLen,
         score: 70 - i * 3,
