@@ -1,6 +1,7 @@
 # Smarter AI Highlights
 
 ## Summary
+
 Add an AI-powered option that reads transcript, video metadata, and chapters to pick better viral moments than local keyword matching. Local heuristics remain available and are the fallback when AI fails or credits run out.
 
 ## What we will build

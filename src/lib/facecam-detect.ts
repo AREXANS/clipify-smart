@@ -17,15 +17,7 @@ const SAMPLE_W = 320;
 function isSkin(r: number, g: number, b: number) {
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  return (
-    r > 95 &&
-    g > 40 &&
-    b > 20 &&
-    max - min > 15 &&
-    Math.abs(r - g) > 15 &&
-    r > g &&
-    r > b
-  );
+  return r > 95 && g > 40 && b > 20 && max - min > 15 && Math.abs(r - g) > 15 && r > g && r > b;
 }
 
 const CANDIDATES: Rect[] = [
@@ -65,9 +57,7 @@ async function detectFromFrame(
     .FaceDetector;
   if (Ctor) {
     try {
-      const faces = await new Ctor({ fastMode: true, maxDetectedFaces: 5 }).detect(
-        ctx.canvas,
-      );
+      const faces = await new Ctor({ fastMode: true, maxDetectedFaces: 5 }).detect(ctx.canvas);
       const face = faces
         .map((f) => f.boundingBox)
         .sort((a, b) => b.width * b.height - a.width * a.height)[0];

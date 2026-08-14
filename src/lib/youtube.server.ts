@@ -119,16 +119,12 @@ export async function fetchVideoContext(
   }
 
   if (/"status":"(LOGIN_REQUIRED|UNPLAYABLE|ERROR)"/.test(html)) {
-    throw new Error(
-      "Video ini tidak bisa diakses publik (privat, dibatasi usia, atau dihapus).",
-    );
+    throw new Error("Video ini tidak bisa diakses publik (privat, dibatasi usia, atau dihapus).");
   }
 
   const title = unescapeJson(html.match(/"title":"(.*?)","lengthSeconds"/s)?.[1] ?? "");
   const author = unescapeJson(html.match(/"author":"(.*?)"/)?.[1] ?? "");
-  const description = unescapeJson(
-    html.match(/"shortDescription":"(.*?)","/s)?.[1] ?? "",
-  );
+  const description = unescapeJson(html.match(/"shortDescription":"(.*?)","/s)?.[1] ?? "");
   const durationSeconds = Number(html.match(/"lengthSeconds":"(\d+)"/)?.[1] ?? 0);
 
   let transcript: TranscriptCue[] = [];

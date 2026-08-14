@@ -46,6 +46,11 @@ export function ClipRender({
     null,
   );
 
+  // Clear the output (download button) when the clip boundaries are changed
+  useEffect(() => {
+    setOutput(null);
+  }, [clip.startSeconds, clip.endSeconds]);
+
   const duration = Math.max(1, clip.endSeconds - clip.startSeconds);
   const size = OUTPUT_SIZE[settings.aspectRatio];
 
@@ -178,13 +183,7 @@ export function ClipRender({
           className="block h-auto w-full"
           aria-label={`Pratinjau hasil edit klip ${clip.title}`}
         />
-        <video
-          ref={videoRef}
-          src={sourceUrl}
-          preload="auto"
-          playsInline
-          className="hidden"
-        />
+        <video ref={videoRef} src={sourceUrl} preload="auto" playsInline className="hidden" />
 
         {!playing && !rendering ? (
           <button

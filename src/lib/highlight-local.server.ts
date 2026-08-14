@@ -12,15 +12,55 @@ export type Highlight = {
 
 /** Kata pemicu momen seru — dipakai untuk skor lokal, tanpa AI. */
 const ACTION_WORDS = [
-  "savage", "maniac", "triple", "double", "kill", "bunuh", "clutch", "war",
-  "gg", "wow", "gila", "anjir", "buset", "mantap", "epic", "comeback",
-  "lord", "turtle", "tower", "push", "ulti", "ultimate", "combo", "one shot",
-  "menang", "kalah", "hoki", "keren", "parah", "sadis", "auto", "pecah",
+  "savage",
+  "maniac",
+  "triple",
+  "double",
+  "kill",
+  "bunuh",
+  "clutch",
+  "war",
+  "gg",
+  "wow",
+  "gila",
+  "anjir",
+  "buset",
+  "mantap",
+  "epic",
+  "comeback",
+  "lord",
+  "turtle",
+  "tower",
+  "push",
+  "ulti",
+  "ultimate",
+  "combo",
+  "one shot",
+  "menang",
+  "kalah",
+  "hoki",
+  "keren",
+  "parah",
+  "sadis",
+  "auto",
+  "pecah",
 ];
 
 const HYPE_WORDS = [
-  "!", "?", "haha", "wkwk", "astaga", "ya ampun", "gokil", "serius", "lihat",
-  "liat", "bang", "guys", "nih", "banget",
+  "!",
+  "?",
+  "haha",
+  "wkwk",
+  "astaga",
+  "ya ampun",
+  "gokil",
+  "serius",
+  "lihat",
+  "liat",
+  "bang",
+  "guys",
+  "nih",
+  "banget",
 ];
 
 function scoreText(text: string, highlightAction: boolean) {
@@ -51,10 +91,7 @@ function titleFrom(text: string, addHook: boolean) {
  * kepadatan bicara. Berjalan penuh di server tanpa memanggil layanan AI,
  * jadi tidak memakai kredit dan tidak ada batas pemakaian.
  */
-export function selectHighlightsLocal(
-  ctx: VideoContext,
-  settings: ClipSettings,
-): Highlight[] {
+export function selectHighlightsLocal(ctx: VideoContext, settings: ClipSettings): Highlight[] {
   const total =
     ctx.durationSeconds ||
     (ctx.transcript.length ? ctx.transcript[ctx.transcript.length - 1]!.end : 0);
@@ -79,7 +116,9 @@ export function selectHighlightsLocal(
       // Bagian awal video biasanya intro, beri sedikit penalti.
       if (t < 30) score -= 8;
       const best = cues.reduce((a, b) =>
-        scoreText(b.text, settings.highlightKills) > scoreText(a.text, settings.highlightKills) ? b : a,
+        scoreText(b.text, settings.highlightKills) > scoreText(a.text, settings.highlightKills)
+          ? b
+          : a,
       );
       candidates.push({
         title: titleFrom(best.text, settings.addHook),
@@ -130,7 +169,6 @@ export function selectHighlightsLocal(
         cues: [],
       });
     }
-
   }
 
   // Ambil skor tertinggi tanpa tumpang tindih.
@@ -150,9 +188,6 @@ export function selectHighlightsLocal(
     .sort((a, b) => a.start - b.start)
     .map((p) => ({
       ...p,
-      score: Math.max(
-        55,
-        Math.min(99, Math.round(55 + ((p.score - min) / (max - min || 1)) * 44)),
-      ),
+      score: Math.max(55, Math.min(99, Math.round(55 + ((p.score - min) / (max - min || 1)) * 44))),
     }));
 }

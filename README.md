@@ -2,11 +2,7 @@
 
 buatkan website cliper otomatis dengan hanya memakai url youtube.
 
-
-
 ada banyak pilihan pengaturan sebelum di generate menjadi beberapa clip. seperti rasio, subtitle on/off, split face came & gameplay fungsinya agar otomatis mendeteksi bagian gameplay ml dan wajah face cam dipisahkan menjadi 2 bagian.
-
-
 
 pastikan hasil AI generate video clip nya bagus tanpa ada kendala apapun.
 

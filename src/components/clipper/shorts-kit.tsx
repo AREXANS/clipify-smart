@@ -38,9 +38,7 @@ export function ShortsKit({ clip }: { clip: ClipResult }) {
   return (
     <section className="mt-3 space-y-3 rounded-lg border border-border bg-surface/50 p-3">
       <div className="flex items-center justify-between gap-2">
-        <h4 className="font-display text-xs tracking-widest uppercase">
-          Siap upload Shorts
-        </h4>
+        <h4 className="font-display text-xs tracking-widest uppercase">Siap upload Shorts</h4>
         <CopyButton label="Salin semua" value={full} />
       </div>
 

@@ -68,11 +68,7 @@ function ToggleRow({
         <p className="text-[0.95rem] leading-tight font-semibold">{label}</p>
         <p className="text-sm text-muted-foreground">{desc}</p>
       </div>
-      <Switch
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        disabled={disabled ?? false}
-      />
+      <Switch checked={checked} onCheckedChange={onCheckedChange} disabled={disabled ?? false} />
     </div>
   );
 }
@@ -96,9 +92,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
     onChange("facecamOffsetY", Math.round(clamp((pointerY - baseCenterY) * 100)));
   };
 
-
   return (
-
     <div className="space-y-8">
       <section className="space-y-4">
         <SectionTitle
@@ -153,9 +147,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
                   <span className="block text-[0.95rem] leading-tight font-semibold">
                     {mode.label}
                   </span>
-                  <span className="block text-sm text-muted-foreground">
-                    {mode.desc}
-                  </span>
+                  <span className="block text-sm text-muted-foreground">{mode.desc}</span>
                 </span>
               </button>
             );
@@ -166,9 +158,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
           <div className="rounded-lg border border-border bg-surface/60 px-4 py-4">
             <div className="mb-3 flex items-center justify-between">
               <Label className="text-[0.95rem]">Porsi tinggi facecam</Label>
-              <span className="font-display text-sm text-primary">
-                {settings.facecamShare}%
-              </span>
+              <span className="font-display text-sm text-primary">{settings.facecamShare}%</span>
             </div>
             <Slider
               value={[settings.facecamShare]}
@@ -186,9 +176,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
               <Label className="text-[0.95rem]">Posisi facecam di video sumber</Label>
               <Select
                 value={settings.facecamSource}
-                onValueChange={(v) =>
-                  onChange("facecamSource", v as ClipSettings["facecamSource"])
-                }
+                onValueChange={(v) => onChange("facecamSource", v as ClipSettings["facecamSource"])}
                 disabled={disabled ?? false}
               >
                 <SelectTrigger>
@@ -210,9 +198,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
             <div className="mt-4 space-y-3 rounded-lg border border-border bg-surface/40 px-3 py-3">
               <div className="flex items-center justify-between">
                 <Label className="text-[0.95rem]">Zoom facecam</Label>
-                <span className="font-display text-sm text-primary">
-                  {settings.facecamZoom}%
-                </span>
+                <span className="font-display text-sm text-primary">{settings.facecamZoom}%</span>
               </div>
               <Slider
                 value={[settings.facecamZoom]}
@@ -386,9 +372,7 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
         <div className="rounded-lg border border-border bg-surface/60 px-4 py-4">
           <div className="mb-3 flex items-center justify-between">
             <Label className="text-[0.95rem]">Jumlah klip</Label>
-            <span className="font-display text-sm text-primary">
-              {settings.clipCount}
-            </span>
+            <span className="font-display text-sm text-primary">{settings.clipCount}</span>
           </div>
           <Slider
             value={[settings.clipCount]}

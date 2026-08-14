@@ -65,8 +65,8 @@ export type ClipSettings = {
   facecamShare: number; // % tinggi frame untuk facecam saat layout split
   facecamSource: FacecamSource; // posisi kamera streamer di video sumber
   facecamZoom: number; // % zoom area facecam (100 = preset, >100 makin dekat)
-  facecamOffsetX: number; // geser area facecam horizontal (-50..50 % lebar)
-  facecamOffsetY: number; // geser area facecam vertikal (-50..50 % tinggi)
+  facecamOffsetX: number; // geser area facecam horizontal (-100..100 % lebar)
+  facecamOffsetY: number; // geser area facecam vertikal (-100..100 % tinggi)
   subtitles: boolean;
   subtitleStyle: SubtitleStyle;
   subtitleLanguage: string;

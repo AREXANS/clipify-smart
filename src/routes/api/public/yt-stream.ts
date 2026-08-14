@@ -17,10 +17,9 @@ export const Route = createFileRoute("/api/public/yt-stream")({
         try {
           return await streamVideoRange(videoId, request.headers.get("range"));
         } catch (err) {
-          return new Response(
-            err instanceof Error ? err.message : "Gagal mengalirkan video",
-            { status: 502 },
-          );
+          return new Response(err instanceof Error ? err.message : "Gagal mengalirkan video", {
+            status: 502,
+          });
         }
       },
     },

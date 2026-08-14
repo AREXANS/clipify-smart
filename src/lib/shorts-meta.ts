@@ -5,15 +5,7 @@ export type ShortsMeta = {
   hashtags: string[];
 };
 
-const BASE_TAGS = [
-  "#shorts",
-  "#mobilelegends",
-  "#mlbb",
-  "#gaming",
-  "#clip",
-  "#viral",
-  "#fyp",
-];
+const BASE_TAGS = ["#shorts", "#mobilelegends", "#mlbb", "#gaming", "#clip", "#viral", "#fyp"];
 
 const KEYWORD_TAGS: Array<{ test: RegExp; tags: string[] }> = [
   { test: /savage/i, tags: ["#savage", "#savagemoment"] },
@@ -42,13 +34,16 @@ export function buildShortsMeta(input: {
   lines?: string[] | undefined;
   durationSeconds: number;
 }): ShortsMeta {
-  const hook = titleCase(input.clipTitle || "Momen seru");
+  // Use the actual clip title as the hook, or "Momen seru" as fallback.
+  // We do not force titleCase because AI-generated titles may already have specific formatting.
+  const hook = clean(input.clipTitle || "Momen seru");
   const source = clean(input.videoTitle ?? "");
   const quote = clean((input.lines ?? []).slice(0, 3).join(" ")).slice(0, 180);
 
-  const shortsTitle = clean(
-    `${hook} 🔥 ${Math.round(input.durationSeconds)}s #shorts`,
-  ).slice(0, 95);
+  const shortsTitle = clean(`${hook} 🔥 ${Math.round(input.durationSeconds)}s #shorts`).slice(
+    0,
+    95,
+  );
 
   const captionParts = [
     hook.toUpperCase(),

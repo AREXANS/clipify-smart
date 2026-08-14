@@ -112,11 +112,7 @@ export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
   };
 }
 
-async function providerFetch(
-  config: ProviderConfig,
-  path: string,
-  init?: RequestInit,
-) {
+async function providerFetch(config: ProviderConfig, path: string, init?: RequestInit) {
   const res = await fetch(`${config.baseUrl}${path}`, {
     ...init,
     headers: {
@@ -169,18 +165,12 @@ export async function createProviderJob(
   return normalizeProviderJob(payload, analysis);
 }
 
-export async function fetchProviderJob(
-  config: ProviderConfig,
-  jobId: string,
-): Promise<ClipJob> {
+export async function fetchProviderJob(config: ProviderConfig, jobId: string): Promise<ClipJob> {
   const payload = await providerFetch(config, `/jobs/${encodeURIComponent(jobId)}`);
   return normalizeProviderJob(payload);
 }
 
-function normalizeProviderJob(
-  payload: Record<string, unknown>,
-  analysis?: ClipJob,
-): ClipJob {
+function normalizeProviderJob(payload: Record<string, unknown>, analysis?: ClipJob): ClipJob {
   const rawClips = Array.isArray(payload["clips"]) ? payload["clips"] : [];
   const clips: ClipResult[] = rawClips.map((raw, i) => {
     const c = raw as Record<string, unknown>;

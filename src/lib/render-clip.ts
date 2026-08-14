@@ -30,10 +30,7 @@ export const FACECAM_SOURCES: Record<ClipSettings["facecamSource"], Rect> = {
  * Area facecam final: preset/deteksi otomatis lalu diberi zoom manual dan
  * geseran halus sesuai pengaturan pengguna.
  */
-export function resolveFacecamRect(
-  settings: ClipSettings,
-  autoRect?: Rect | null,
-): Rect {
+export function resolveFacecamRect(settings: ClipSettings, autoRect?: Rect | null): Rect {
   const base =
     settings.facecamSource === "auto"
       ? (autoRect ?? FACECAM_SOURCES.auto)
@@ -66,7 +63,6 @@ function drawCover(
   const sw = Math.max(1, src.w * dims.width);
   const sh = Math.max(1, src.h * dims.height);
 
-
   const scale = Math.max(dest.w / sw, dest.h / sh);
   const cw = dest.w / scale;
   const ch = dest.h / scale;
@@ -76,11 +72,7 @@ function drawCover(
   ctx.drawImage(video, cx, cy, cw, ch, dest.x, dest.y, dest.w, dest.h);
 }
 
-function wrapLines(
-  ctx: CanvasRenderingContext2D,
-  words: string[],
-  maxWidth: number,
-): string[][] {
+function wrapLines(ctx: CanvasRenderingContext2D, words: string[], maxWidth: number): string[][] {
   const lines: string[][] = [];
   let current: string[] = [];
   for (const word of words) {
@@ -121,10 +113,7 @@ function drawSubtitle(
   const lines = wrapLines(ctx, words, maxWidth);
   const totalHeight = lines.length * lineHeight;
   const baseY = H * 0.9 - totalHeight + lineHeight / 2;
-  const activeIndex = Math.min(
-    words.length - 1,
-    Math.floor(progress * words.length),
-  );
+  const activeIndex = Math.min(words.length - 1, Math.floor(progress * words.length));
 
   let wordIndex = 0;
   lines.forEach((line, li) => {
@@ -136,12 +125,7 @@ function drawSubtitle(
     if (style === "minimal") {
       const padX = fontSize * 0.4;
       ctx.fillStyle = "rgba(0,0,0,0.62)";
-      ctx.fillRect(
-        x - padX,
-        y - lineHeight / 2,
-        lineWidth + padX * 2,
-        lineHeight,
-      );
+      ctx.fillRect(x - padX, y - lineHeight / 2, lineWidth + padX * 2, lineHeight);
       ctx.fillStyle = "#ffffff";
       ctx.fillText(lineText, x, y);
       wordIndex += line.length;
@@ -164,12 +148,7 @@ function drawSubtitle(
   });
 }
 
-function drawHook(
-  ctx: CanvasRenderingContext2D,
-  title: string,
-  opacity: number,
-  W: number,
-) {
+function drawHook(ctx: CanvasRenderingContext2D, title: string, opacity: number, W: number) {
   const fontSize = Math.round(W * 0.058);
   ctx.save();
   ctx.globalAlpha = opacity;
@@ -203,14 +182,7 @@ export type FrameContext = {
 };
 
 /** Satu frame klip jadi: crop rasio, split facecam, subtitle, hook. */
-export function drawClipFrame({
-  ctx,
-  video,
-  settings,
-  clip,
-  elapsed,
-  facecamRect,
-}: FrameContext) {
+export function drawClipFrame({ ctx, video, settings, clip, elapsed, facecamRect }: FrameContext) {
   const { w: W, h: H } = OUTPUT_SIZE[settings.aspectRatio];
   const dims = {
     width: video.videoWidth || 16,
@@ -231,16 +203,21 @@ export function drawClipFrame({
     ctx.fillRect(0, topH - 2, W, 4);
   } else if (settings.layout === "gameplay") {
     // Buang area facecam: crop bagian tengah-bawah gameplay
-    drawCover(ctx, video, dims, { x: 0.08, y: 0.1, w: 0.84, h: 0.9 }, {
-      x: 0,
-      y: 0,
-      w: W,
-      h: H,
-    });
+    drawCover(
+      ctx,
+      video,
+      dims,
+      { x: 0.08, y: 0.1, w: 0.84, h: 0.9 },
+      {
+        x: 0,
+        y: 0,
+        w: W,
+        h: H,
+      },
+    );
   } else {
     drawCover(ctx, video, dims, FULL, { x: 0, y: 0, w: W, h: H });
   }
-
 
   if (settings.addHook && elapsed < 3.5) {
     const opacity =
@@ -347,8 +324,7 @@ export async function renderClipToFile(options: {
   try {
     const AudioCtor =
       window.AudioContext ??
-      (window as unknown as { webkitAudioContext?: typeof AudioContext })
-        .webkitAudioContext;
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (AudioCtor) {
       audioCtx = new AudioCtor();
       const srcNode = audioCtx.createMediaElementSource(video);
