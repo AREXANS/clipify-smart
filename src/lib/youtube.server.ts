@@ -119,7 +119,10 @@ export async function fetchVideoContext(
   }
 
   if (/"status":"(LOGIN_REQUIRED|UNPLAYABLE|ERROR)"/.test(html)) {
-    throw new Error("Video ini tidak bisa diakses publik (privat, dibatasi usia, atau dihapus).");
+    // If the video has restrictions or is unplayable via standard metadata scrape,
+    // we return an empty context so the AI/backend can still attempt to process it
+    // rather than throwing a hard error and completely halting the generation.
+    return empty;
   }
 
   const title = unescapeJson(html.match(/"title":"(.*?)","lengthSeconds"/s)?.[1] ?? "");
