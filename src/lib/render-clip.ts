@@ -90,12 +90,13 @@ function wrapLines(ctx: CanvasRenderingContext2D, words: string[], maxWidth: num
 
 function drawSubtitle(
   ctx: CanvasRenderingContext2D,
-  style: SubtitleStyle,
+  settings: ClipSettings,
   text: string,
   progress: number,
   W: number,
   H: number,
 ) {
+  const style = settings.subtitleStyle;
   const fontSize = Math.round(W * 0.062);
   const lineHeight = fontSize * 1.22;
   const maxWidth = W * 0.86;
@@ -112,7 +113,11 @@ function drawSubtitle(
 
   const lines = wrapLines(ctx, words, maxWidth);
   const totalHeight = lines.length * lineHeight;
-  const baseY = H * 0.9 - totalHeight + lineHeight / 2;
+
+  // Apply subtitleOffsetY. 0 means H * 0.9.
+  const offsetY = ((settings.subtitleOffsetY ?? 0) / 100) * H;
+  const baseY = H * 0.9 + offsetY - totalHeight + lineHeight / 2;
+
   const activeIndex = Math.min(words.length - 1, Math.floor(progress * words.length));
 
   let wordIndex = 0;
@@ -237,7 +242,7 @@ export function drawClipFrame({ ctx, video, settings, clip, elapsed, facecamRect
       const progress = cue
         ? Math.min(1, Math.max(0, (elapsed - cue.start) / Math.max(0.2, cue.end - cue.start)))
         : 0;
-      drawSubtitle(ctx, settings.subtitleStyle, text, progress, W, H);
+      drawSubtitle(ctx, settings, text, progress, W, H);
     }
   }
 }

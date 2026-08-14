@@ -11,6 +11,7 @@ const settingsSchema = z.object({
   facecamZoom: z.number().min(60).max(300),
   facecamOffsetX: z.number().min(-100).max(100),
   facecamOffsetY: z.number().min(-100).max(100),
+  subtitleOffsetY: z.number().min(-50).max(50),
   subtitles: z.boolean(),
   subtitleStyle: z.enum(["karaoke", "bold", "minimal"]),
   subtitleLanguage: z.string().min(2).max(5),

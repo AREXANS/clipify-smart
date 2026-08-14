@@ -164,6 +164,15 @@ export function ClipRender({
       toast.success("Klip selesai dirender", {
         description: `Ukuran ${(result.blob.size / 1_000_000).toFixed(1)} MB — siap diunduh.`,
       });
+
+      // Auto-download the rendered clip
+      const fileName = `${String(index + 1).padStart(2, "0")}-${slugify(clip.title)}.${result.extension}`;
+      const link = document.createElement("a");
+      link.href = result.url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Render gagal.");
     } finally {
@@ -200,16 +209,18 @@ export function ClipRender({
 
         {playing ? (
           <>
-            <span className="font-display absolute top-2 left-2 rounded bg-background/80 px-1.5 py-0.5 text-[10px] tracking-wider">
+            <span className="font-display absolute top-2 left-2 rounded bg-background/80 px-1.5 py-0.5 text-[10px] tracking-wider z-10">
               {formatTimecode(elapsed)} / {formatTimecode(duration)}
             </span>
             <button
               type="button"
               onClick={stop}
               aria-label="Hentikan pratinjau"
-              className="absolute top-2 right-2 flex size-7 items-center justify-center rounded-full bg-background/80"
+              className="absolute inset-0 flex items-center justify-center bg-background/0 group"
             >
-              <Square className="size-3.5" />
+              <span className="flex size-12 items-center justify-center rounded-full border border-primary/60 bg-background/75 text-primary opacity-0 transition-all duration-200 group-hover:scale-110 group-hover:opacity-100">
+                <Square className="size-5" />
+              </span>
             </button>
           </>
         ) : null}

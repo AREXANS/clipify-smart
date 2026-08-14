@@ -145,6 +145,7 @@ export async function createProviderJob(
       facecam_zoom: settings.facecamZoom / 100,
       facecam_offset_x: settings.facecamOffsetX / 100,
       facecam_offset_y: settings.facecamOffsetY / 100,
+      subtitle_offset_y: (settings.subtitleOffsetY ?? 0) / 100,
       subtitles: settings.subtitles,
       subtitle_style: settings.subtitleStyle,
       subtitle_language: settings.subtitleLanguage,
