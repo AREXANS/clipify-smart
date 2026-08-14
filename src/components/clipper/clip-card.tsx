@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Download, ExternalLink, FileVideo, Loader2, Sparkles } from "lucide-react";
 import { formatTimecode, type ClipResult, type ClipSettings } from "@/lib/clip-settings";
 import { ClipRender } from "@/components/clipper/clip-render";
 import { ClipEmbed } from "@/components/clipper/clip-embed";
+import { ClipTrim } from "@/components/clipper/clip-trim";
 import { ShortsKit } from "@/components/clipper/shorts-kit";
 
 
@@ -21,13 +23,20 @@ export function ClipCard({
   settings,
   index,
   sourceUrl,
+  onTrim,
 }: {
   clip: ClipResult;
   settings: ClipSettings;
   index: number;
   sourceUrl?: string | undefined;
+  onTrim?: ((start: number, end: number) => void) | undefined;
 }) {
   const ready = clip.status === "ready";
+  const [ytSource, setYtSource] = useState(false);
+  const streamUrl = clip.videoId
+    ? `/api/public/yt-stream?v=${encodeURIComponent(clip.videoId)}`
+    : undefined;
+  const renderSource = sourceUrl ?? (ytSource ? streamUrl : undefined);
 
   if (ready) {
     const body = (
@@ -46,11 +55,20 @@ export function ClipCard({
       </div>
     );
 
-    if (sourceUrl) {
+    const trim = onTrim ? <ClipTrim clip={clip} onTrim={onTrim} /> : null;
+
+    if (renderSource) {
       return (
         <article className="glass-panel overflow-hidden rounded-xl p-3">
-          <ClipRender clip={clip} settings={settings} sourceUrl={sourceUrl} index={index} />
+          <ClipRender
+            key={renderSource}
+            clip={clip}
+            settings={settings}
+            sourceUrl={renderSource}
+            index={index}
+          />
           {body}
+          {trim}
           <ShortsKit clip={clip} />
         </article>
       );
@@ -61,15 +79,25 @@ export function ClipCard({
         <article className="glass-panel overflow-hidden rounded-xl p-3">
           <ClipEmbed clip={clip} settings={settings} index={index} />
           {body}
+          {trim}
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-3 w-full"
+            onClick={() => setYtSource(true)}
+          >
+            <Download className="size-4" /> Siapkan render &amp; unduh
+          </Button>
           <p className="px-1 pt-2 text-sm text-muted-foreground">
-            Pratinjau hasil edit (durasi potongan). Unggah MP4 sumber untuk merender dan
-            mengunduh file.
+            Render langsung dari YouTube bersifat percobaan. Jika gagal, unggah MP4 sumber di
+            bagian atas halaman.
           </p>
           <ShortsKit clip={clip} />
         </article>
       );
     }
   }
+
 
 
 
