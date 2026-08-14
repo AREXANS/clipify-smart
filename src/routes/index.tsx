@@ -296,9 +296,24 @@ function Index() {
                     settings={settings}
                     index={i}
                     sourceUrl={sourceUrl ?? undefined}
+                    onTrim={(start, end) =>
+                      setJob((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              clips: prev.clips.map((c) =>
+                                c.id === clip.id
+                                  ? { ...c, startSeconds: start, endSeconds: end }
+                                  : c,
+                              ),
+                            }
+                          : prev,
+                      )
+                    }
                   />
                 ))}
               </div>
+
             )}
           </div>
         </div>
