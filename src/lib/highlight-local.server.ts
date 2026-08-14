@@ -102,16 +102,25 @@ export function selectHighlightsLocal(
     for (let i = 0; i < settings.clipCount; i++) {
       const start = offset + i * gap;
       if (total && start + clipLen > total) break;
+      // Judul mengikuti chapter yang mencakup momen; kalau tidak ada, pakai
+      // judul video + penanda menit agar tetap spesifik, bukan "Momen Seru".
+      const chapter = [...ctx.chapters].filter((c) => c.start <= start + clipLen / 2).pop();
+      const videoLabel =
+        ctx.title.split(/[|\-–—•]/)[0]?.replace(/\s+/g, " ").trim().slice(0, 42) ?? "";
+      const fallback = `${videoLabel || "Highlight"} — Menit ${Math.floor(start / 60)}`;
       candidates.push({
-        title: settings.addHook ? `Momen Seru #${i + 1}` : `Bagian ${i + 1}`,
+        title: titleFrom(chapter?.title ?? fallback, settings.addHook),
         start,
         end: start + clipLen,
         score: 70 - i * 3,
-        reason: "Dipilih merata di sepanjang video karena transkrip tidak tersedia.",
-        caption: "",
+        reason: chapter
+          ? `Mengikuti chapter "${chapter.title}" pada menit ${Math.floor(start / 60)}.`
+          : "Dipilih merata di sepanjang video karena transkrip tidak tersedia.",
+        caption: chapter?.title ?? "",
         cues: [],
       });
     }
+
   }
 
   // Ambil skor tertinggi tanpa tumpang tindih.
