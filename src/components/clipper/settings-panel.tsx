@@ -86,19 +86,16 @@ export function SettingsPanel({ settings, onChange, disabled }: Props) {
     if (!draggingRef.current || bounds.width === 0 || bounds.height === 0) return;
     const pointerX = (clientX - bounds.left) / bounds.width;
     const pointerY = (clientY - bounds.top) / bounds.height;
-    const baseCenterX = camPreview.x + camPreview.w / 2 - settings.facecamOffsetX / 100;
-    const baseCenterY = camPreview.y + camPreview.h / 2 - settings.facecamOffsetY / 100;
-    const nextX = Math.max(
-      -50,
-      Math.min(50, (pointerX - baseCenterX) * 100),
-    );
-    const nextY = Math.max(
-      -50,
-      Math.min(50, (pointerY - baseCenterY) * 100),
-    );
-    onChange("facecamOffsetX", Math.round(nextX));
-    onChange("facecamOffsetY", Math.round(nextY));
+    // Titik acuan preset (belum di-clamp) agar kotak bisa digeser sampai mentok
+    // tepi atas/bawah/kiri/kanan frame sumber.
+    const preset = FACECAM_SOURCES[settings.facecamSource] ?? FACECAM_SOURCES.auto;
+    const baseCenterX = preset.x + preset.w / 2;
+    const baseCenterY = preset.y + preset.h / 2;
+    const clamp = (v: number) => Math.max(-100, Math.min(100, v));
+    onChange("facecamOffsetX", Math.round(clamp((pointerX - baseCenterX) * 100)));
+    onChange("facecamOffsetY", Math.round(clamp((pointerY - baseCenterY) * 100)));
   };
+
 
   return (
 
