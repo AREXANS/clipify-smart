@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Play, RotateCcw } from "lucide-react";
+import { Loader2, Pause, Play, RotateCcw, Square } from "lucide-react";
 import { formatTimecode, type ClipResult, type ClipSettings } from "@/lib/clip-settings";
 import { FACECAM_SOURCES, resolveFacecamRect, type Rect } from "@/lib/render-clip";
 import { SubtitleText } from "@/components/clipper/subtitle-preview";
@@ -310,16 +310,35 @@ export function ClipEmbed({
               {finished ? <RotateCcw className="size-5" /> : <Play className="size-5" />}
             </span>
           </button>
-        ) : (
+        ) : null}
+
+        <div className="absolute right-2 bottom-2 z-30 flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={started ? pause : play}
+            aria-label={started ? "Jeda klip" : "Putar klip"}
+            className="flex size-8 items-center justify-center rounded-full border border-primary/40 bg-background/85 text-primary"
+          >
+            {started ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
+          </button>
+          <button
+            type="button"
+            onClick={stopClip}
+            aria-label="Stop klip"
+            className="flex size-8 items-center justify-center rounded-full border border-border bg-background/85"
+          >
+            <Square className="size-3.5" />
+          </button>
           <button
             type="button"
             onClick={restart}
             aria-label="Ulang dari awal potongan"
-            className="absolute top-2 right-2 z-30 flex size-7 items-center justify-center rounded-full bg-background/80"
+            className="flex size-8 items-center justify-center rounded-full border border-border bg-background/85"
           >
             <RotateCcw className="size-3.5" />
           </button>
-        )}
+        </div>
+
 
         {started && elapsed === 0 ? (
           <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
