@@ -240,9 +240,9 @@ export function ClipRender({
         {rendering ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/80 text-center">
             <Loader2 className="size-6 animate-spin text-primary" />
-            <p className="font-display text-sm tracking-widest uppercase">Merender</p>
+            <p className="font-display text-sm tracking-widest uppercase">Mengekspor</p>
             <p className="px-6 text-sm text-muted-foreground">
-              Jangan tutup tab ini — klip direkam secara real-time.
+              Encode langsung frame-per-frame — tidak perlu memutar ulang klipnya.
             </p>
           </div>
         ) : null}
@@ -259,7 +259,7 @@ export function ClipRender({
           disabled={rendering}
         >
           {rendering ? <Loader2 className="size-4 animate-spin" /> : <Film className="size-4" />}
-          {output ? "Render ulang" : "Render klip"}
+          {output ? "Unduh ulang" : "Unduh klip (MP4)"}
         </Button>
         {output ? (
           <Button size="sm" className="flex-1" asChild>
