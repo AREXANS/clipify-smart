@@ -8,6 +8,11 @@ export type Highlight = {
   score: number;
   reason: string;
   caption: string;
+  /** Metadata upload hasil analisis AI (opsional, hanya saat mode AI). */
+  topic?: string | undefined;
+  shortsTitle?: string | undefined;
+  uploadCaption?: string | undefined;
+  hashtags?: string[] | undefined;
 };
 
 /** Kata pemicu momen seru — dipakai untuk skor lokal, tanpa AI. */

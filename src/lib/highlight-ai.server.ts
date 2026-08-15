@@ -16,6 +16,10 @@ const aiOutputSchema = z.object({
       score: z.number().optional(),
       reason: z.string(),
       caption: z.string(),
+      topic: z.string().optional(),
+      shorts_title: z.string().optional(),
+      upload_caption: z.string().optional(),
+      hashtags: z.array(z.string()).optional(),
     }),
   ),
 });
@@ -51,6 +55,10 @@ ${settings.removeSilence ? "- Hindari jeda/jeda panjang; klip harus padat bicara
 ${settings.addHook ? "- Buat judul menarik dengan hook di awal (contoh: 'Momen Paling Gila!', 'Savage di Detik Terakhir!')." : ""}
 - Alasan harus menjelaskan kenapa momen itu viral.
 - Caption adalah 1-2 kalimat puncak yang muncul di klip.
+- topic: topik/tema spesifik yang dibahas pada momen itu (bukan umum).
+- shorts_title: judul siap upload Shorts/TikTok (maks 90 karakter, sesuai topik momen, boleh 1 emoji).
+- upload_caption: deskripsi upload 2-3 baris yang menjelaskan isi momen tersebut + ajakan komentar.
+- hashtags: 8-12 hashtag relevan dengan topik momen (pakai awalan #, tanpa spasi).
 - Klip tidak boleh tumpang tindih.
 
 FORMAT KELUARAN (JSON):
@@ -63,7 +71,11 @@ Gunakan field name persis berikut untuk setiap highlight:
       "end_seconds": 150,
       "score": 85,
       "reason": "...",
-      "caption": "..."
+      "caption": "...",
+      "topic": "...",
+      "shorts_title": "...",
+      "upload_caption": "...",
+      "hashtags": ["#...", "#..."]
     }
   ]
 }
@@ -117,6 +129,13 @@ function normalizeHighlights(
       score: Math.max(55, Math.min(99, Math.round(h.score ?? 80))),
       reason: h.reason.slice(0, 220),
       caption: h.caption.slice(0, 120),
+      topic: h.topic?.slice(0, 120),
+      shortsTitle: h.shorts_title?.slice(0, 95),
+      uploadCaption: h.upload_caption?.slice(0, 600),
+      hashtags: h.hashtags
+        ?.map((t) => `#${t.replace(/^#/, "").replace(/\s+/g, "")}`)
+        .filter((t) => t.length > 1)
+        .slice(0, 12),
     });
   }
 
