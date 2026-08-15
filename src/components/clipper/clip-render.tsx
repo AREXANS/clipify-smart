@@ -3,6 +3,7 @@ import { Download, Film, Loader2, Play, Square } from "lucide-react";
 import type { ClipResult, ClipSettings } from "@/lib/clip-settings";
 import { formatTimecode } from "@/lib/clip-settings";
 import { OUTPUT_SIZE, drawClipFrame, renderClipToFile, type Rect } from "@/lib/render-clip";
+import { canExportDirect, exportClipDirect } from "@/lib/export-clip";
 import { detectFacecamRect } from "@/lib/facecam-detect";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
