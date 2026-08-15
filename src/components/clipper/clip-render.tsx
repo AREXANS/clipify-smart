@@ -148,16 +148,36 @@ export function ClipRender({
     setRendering(true);
     setRenderProgress(0);
     try {
-      const result = await renderClipToFile({
-        sourceUrl,
-        clip,
-        settings,
-        facecamRect,
-        onProgress: setRenderProgress,
-      });
+      const direct = canExportDirect();
+      const result = direct
+        ? await exportClipDirect({
+            sourceUrl,
+            clip,
+            settings,
+            facecamRect,
+            onProgress: setRenderProgress,
+          })
+        : await renderClipToFile({
+            sourceUrl,
+            clip,
+            settings,
+            facecamRect,
+            onProgress: setRenderProgress,
+          });
       setOutput({ url: result.url, extension: result.extension, size: result.blob.size });
-      toast.success("Klip selesai dirender", {
-        description: `Ukuran ${(result.blob.size / 1_000_000).toFixed(1)} MB — siap diunduh.`,
+
+      // Langsung unduh tanpa langkah tambahan.
+      const link = document.createElement("a");
+      link.href = result.url;
+      link.download = `${String(index + 1).padStart(2, "0")}-${slugify(clip.title)}.${result.extension}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      toast.success("Klip terunduh", {
+        description: `${(result.blob.size / 1_000_000).toFixed(1)} MB · ${
+          direct ? "encode langsung (tanpa rekam ulang)" : "rekaman fallback"
+        }.`,
       });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Render gagal.");
@@ -165,6 +185,7 @@ export function ClipRender({
       setRendering(false);
     }
   };
+
 
   const fileName = `${String(index + 1).padStart(2, "0")}-${slugify(clip.title)}.${output?.extension ?? "mp4"}`;
 
