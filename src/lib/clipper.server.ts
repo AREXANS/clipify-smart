@@ -80,9 +80,9 @@ export async function analyzeVideo(settings: ClipSettings): Promise<ClipJob> {
       videoId: ctx.videoId,
       previewUrl: embedUrl(ctx.videoId, h.start, h.end),
       subtitleLines: cueTexts.length ? cueTexts : h.caption ? [h.caption] : [],
-      shortsTitle: meta.shortsTitle,
-      caption: meta.caption,
-      hashtags: meta.hashtags,
+      shortsTitle: h.shortsTitle ?? meta.shortsTitle,
+      caption: h.uploadCaption ?? meta.caption,
+      hashtags: h.hashtags?.length ? h.hashtags : meta.hashtags,
       subtitleCues: clipCues.length
         ? clipCues
         : h.caption

@@ -3,6 +3,7 @@ import { Download, Film, Loader2, Play, Square } from "lucide-react";
 import type { ClipResult, ClipSettings } from "@/lib/clip-settings";
 import { formatTimecode } from "@/lib/clip-settings";
 import { OUTPUT_SIZE, drawClipFrame, renderClipToFile, type Rect } from "@/lib/render-clip";
+import { canExportDirect, exportClipDirect } from "@/lib/export-clip";
 import { detectFacecamRect } from "@/lib/facecam-detect";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -148,16 +149,36 @@ export function ClipRender({
     setRendering(true);
     setRenderProgress(0);
     try {
-      const result = await renderClipToFile({
-        sourceUrl,
-        clip,
-        settings,
-        facecamRect,
-        onProgress: setRenderProgress,
-      });
+      const direct = canExportDirect();
+      const result = direct
+        ? await exportClipDirect({
+            sourceUrl,
+            clip,
+            settings,
+            facecamRect,
+            onProgress: setRenderProgress,
+          })
+        : await renderClipToFile({
+            sourceUrl,
+            clip,
+            settings,
+            facecamRect,
+            onProgress: setRenderProgress,
+          });
       setOutput({ url: result.url, extension: result.extension, size: result.blob.size });
-      toast.success("Klip selesai dirender", {
-        description: `Ukuran ${(result.blob.size / 1_000_000).toFixed(1)} MB — siap diunduh.`,
+
+      // Langsung unduh tanpa langkah tambahan.
+      const link = document.createElement("a");
+      link.href = result.url;
+      link.download = `${String(index + 1).padStart(2, "0")}-${slugify(clip.title)}.${result.extension}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      toast.success("Klip terunduh", {
+        description: `${(result.blob.size / 1_000_000).toFixed(1)} MB · ${
+          direct ? "encode langsung (tanpa rekam ulang)" : "rekaman fallback"
+        }.`,
       });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Render gagal.");
@@ -165,6 +186,7 @@ export function ClipRender({
       setRendering(false);
     }
   };
+
 
   const fileName = `${String(index + 1).padStart(2, "0")}-${slugify(clip.title)}.${output?.extension ?? "mp4"}`;
 
@@ -218,9 +240,9 @@ export function ClipRender({
         {rendering ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/80 text-center">
             <Loader2 className="size-6 animate-spin text-primary" />
-            <p className="font-display text-sm tracking-widest uppercase">Merender</p>
+            <p className="font-display text-sm tracking-widest uppercase">Mengekspor</p>
             <p className="px-6 text-sm text-muted-foreground">
-              Jangan tutup tab ini — klip direkam secara real-time.
+              Encode langsung frame-per-frame — tidak perlu memutar ulang klipnya.
             </p>
           </div>
         ) : null}
@@ -237,7 +259,7 @@ export function ClipRender({
           disabled={rendering}
         >
           {rendering ? <Loader2 className="size-4 animate-spin" /> : <Film className="size-4" />}
-          {output ? "Render ulang" : "Render klip"}
+          {output ? "Unduh ulang" : "Unduh klip (MP4)"}
         </Button>
         {output ? (
           <Button size="sm" className="flex-1" asChild>
