@@ -180,15 +180,36 @@ export function ClipEmbed({
 
   const play = () => {
     setFinished(false);
-    command("seekTo", [clip.startSeconds, true]);
+    if (!paused) command("seekTo", [clip.startSeconds, true]);
     command("playVideo");
+    setPaused(false);
     setStarted(true);
+  };
+
+  const pause = () => {
+    command("pauseVideo");
+    setPaused(true);
+    setStarted(false);
+  };
+
+  const stopClip = () => {
+    command("pauseVideo");
+    command("seekTo", [clip.startSeconds, true]);
+    setPaused(false);
+    setStarted(false);
+    setFinished(false);
+    setElapsed(0);
   };
 
   const restart = () => {
     setElapsed(0);
-    play();
+    setPaused(false);
+    command("seekTo", [clip.startSeconds, true]);
+    command("playVideo");
+    setStarted(true);
+    setFinished(false);
   };
+
 
   const activeCue = useMemo(() => {
     if (!settings.subtitles) return null;
