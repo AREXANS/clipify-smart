@@ -151,6 +151,7 @@ export function ClipEmbed({
   const [started, setStarted] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [paused, setPaused] = useState(false);
   const windowsRef = useRef<Window[]>([]);
   const duration = Math.max(1, clip.endSeconds - clip.startSeconds);
   const idBase = `ytclip-${clip.id}-${index}`;
