@@ -176,8 +176,8 @@ export function ClipRender({
       document.body.appendChild(link);
       link.click();
       await new Promise((r) => setTimeout(r, 0));
-      link.dispatchEvent(new MouseEvent("click", { bubbles: false, cancelable: true }));
       link.remove();
+
 
 
       toast.success("Klip terunduh", {
