@@ -40,13 +40,23 @@ function CropPane({ videoId, start, end, rect, muted, playerId, onTime, onReady 
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [box, setBox] = useState<{ w: number; h: number } | null>(null);
 
+  // Buang band atas/bawah frame YouTube (judul, tombol share, watermark,
+  // subtitle bawaan) agar hasil klip bersih tanpa elemen YouTube.
+  const safe = useMemo(() => {
+    const h = Math.min(rect.h, 0.74);
+    const w = Math.min(rect.w, 0.94);
+    const y = Math.min(Math.max(rect.y, 0.13), 0.87 - h);
+    const x = Math.min(Math.max(rect.x, 0.03), 0.97 - w);
+    return { x, y, w, h };
+  }, [rect.x, rect.y, rect.w, rect.h]);
+
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
     const measure = () => {
       const r = host.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) {
-        const w = Math.max(r.width / rect.w, ((r.height * 16) / 9) / rect.h);
+        const w = Math.max(r.width / safe.w, ((r.height * 16) / 9) / safe.h);
         setBox({ w, h: (w * 9) / 16 });
       }
     };
@@ -54,7 +64,8 @@ function CropPane({ videoId, start, end, rect, muted, playerId, onTime, onReady 
     const ro = new ResizeObserver(measure);
     ro.observe(host);
     return () => ro.disconnect();
-  }, [rect.w, rect.h]);
+  }, [safe.w, safe.h]);
+
 
   useEffect(() => {
     const frame = frameRef.current;
