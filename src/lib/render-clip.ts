@@ -243,7 +243,11 @@ export function drawClipFrame({
 
   if (settings.layout === "split") {
     const topH = Math.round((H * settings.facecamShare) / 100);
-    const face = resolveFacecamRect(settings, facecamRect ?? null);
+    const face = resolveFacecamRect(settings, facecamRect ?? null, {
+      targetAspect: W / Math.max(1, topH),
+      sourceAspect: dims.width / dims.height,
+    });
+
     drawCover(ctx, video, dims, face, { x: 0, y: 0, w: W, h: topH });
     drawCover(ctx, video, dims, FULL, { x: 0, y: topH, w: W, h: H - topH });
     ctx.fillStyle = "rgba(0,0,0,0.9)";
