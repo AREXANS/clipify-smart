@@ -29,10 +29,15 @@ export const FACECAM_SOURCES: Record<ClipSettings["facecamSource"], Rect> = {
 /**
  * Area facecam final: preset/deteksi otomatis lalu diberi zoom manual dan
  * geseran halus sesuai pengaturan pengguna.
+ *
+ * `targetAspect` (lebar/tinggi panel keluaran) dan `sourceAspect` (lebar/tinggi
+ * video sumber) dipakai agar kotak sumber punya rasio sama dengan panel tujuan,
+ * sehingga tidak ada bagian facecam yang terpotong saat digambar.
  */
 export function resolveFacecamRect(
   settings: ClipSettings,
   autoRect?: Rect | null,
+  fit?: { targetAspect: number; sourceAspect: number },
 ): Rect {
   const base =
     settings.facecamSource === "auto"
@@ -40,8 +45,21 @@ export function resolveFacecamRect(
       : (FACECAM_SOURCES[settings.facecamSource] ?? FACECAM_SOURCES.full);
 
   const zoom = Math.max(0.6, (settings.facecamZoom ?? 100) / 100);
-  const w = Math.min(1, Math.max(0.05, base.w / zoom));
-  const h = Math.min(1, Math.max(0.05, base.h / zoom));
+  let w = Math.min(1, Math.max(0.05, base.w / zoom));
+  let h = Math.min(1, Math.max(0.05, base.h / zoom));
+
+  if (fit && fit.targetAspect > 0 && fit.sourceAspect > 0) {
+    // Rasio kotak dalam piksel sumber.
+    const rectAspect = (w * fit.sourceAspect) / h;
+    if (rectAspect < fit.targetAspect) {
+      w = Math.min(1, (h * fit.targetAspect) / fit.sourceAspect);
+      h = Math.min(1, (w * fit.sourceAspect) / fit.targetAspect);
+    } else if (rectAspect > fit.targetAspect) {
+      h = Math.min(1, (w * fit.sourceAspect) / fit.targetAspect);
+      w = Math.min(1, (h * fit.targetAspect) / fit.sourceAspect);
+    }
+  }
+
   const cx = base.x + base.w / 2 + (settings.facecamOffsetX ?? 0) / 100;
   const cy = base.y + base.h / 2 + (settings.facecamOffsetY ?? 0) / 100;
 
@@ -52,6 +70,7 @@ export function resolveFacecamRect(
     h,
   };
 }
+
 
 /** Gambar potongan sumber ke tujuan dengan mode cover (tanpa distorsi). */
 function drawCover(
