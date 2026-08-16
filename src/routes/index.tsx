@@ -53,6 +53,8 @@ const STEPS = [
   { icon: ScissorsLineDashed, title: "Generate", desc: "AI memilih momen paling seru." },
 ];
 
+const SETTINGS_KEY = "clipforge:settings:v1";
+
 function Index() {
   const [settings, setSettings] = useState<ClipSettings>(DEFAULT_SETTINGS);
   const [job, setJob] = useState<ClipJob | null>(null);
@@ -61,6 +63,31 @@ function Index() {
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [uploadUrl, setUploadUrl] = useState<string | null>(null);
   const [sourceName, setSourceName] = useState<string | null>(null);
+  const settingsLoaded = useRef(false);
+
+  // Pengaturan tersimpan permanen di perangkat (dibaca setelah hydration).
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(SETTINGS_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<ClipSettings>;
+        setSettings((prev) => ({ ...prev, ...saved }));
+      }
+    } catch {
+      // abaikan storage rusak
+    }
+    settingsLoaded.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!settingsLoaded.current) return;
+    try {
+      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch {
+      // abaikan kuota penuh
+    }
+  }, [settings]);
+
 
   // YouTube menolak proxy media dari sebagian alamat server produksi. Preview
   // memakai player resmi YouTube; file lokal hanya dipakai untuk render/export.

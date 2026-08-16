@@ -238,7 +238,13 @@ export function ClipEmbed({
   }, [settings.subtitles, clip, elapsed, duration]);
 
   const showHook = settings.addHook && elapsed < 2.6;
-  const camRect = resolveFacecamRect(settings);
+  const camRect = resolveFacecamRect(settings, null, {
+    targetAspect:
+      RATIO_VALUE[settings.aspectRatio] /
+      (Math.min(70, Math.max(20, settings.facecamShare)) / 100),
+    sourceAspect: 16 / 9,
+  });
+
   const gameRect = gameplayRect(settings);
   const split = settings.layout === "split";
   const camHeight = Math.min(70, Math.max(20, settings.facecamShare));
