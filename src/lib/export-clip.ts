@@ -144,24 +144,76 @@ export async function exportClipDirect(options: {
   if (!ctx) throw new Error("Canvas tidak tersedia di browser ini.");
 
   const totalFrames = Math.round(duration * FPS);
-  for (let i = 0; i < totalFrames; i += 1) {
-    if (signal?.aborted) break;
-    const elapsed = i / FPS;
-    await seek(video, clip.startSeconds + elapsed);
+  const hasFrameCallback =
+    typeof (video as unknown as { requestVideoFrameCallback?: unknown })
+      .requestVideoFrameCallback === "function";
+
+  const encodeFrame = (index: number) => {
+    const elapsed = index / FPS;
     drawClipFrame({ ctx, video, settings, clip, elapsed, facecamRect: faceRect });
     const frame = new VideoFrame(canvas, {
       timestamp: Math.round(elapsed * 1_000_000),
       duration: Math.round(1_000_000 / FPS),
     });
-    videoEncoder.encode(frame, { keyFrame: i % (FPS * 2) === 0 });
+    videoEncoder.encode(frame, { keyFrame: index % (FPS * 2) === 0 });
     frame.close();
-    if (videoEncoder.encodeQueueSize > 8) {
-      await videoEncoder.flush();
+    onProgress?.(Math.min(0.95, (index + 1) / totalFrames));
+  };
+
+  if (hasFrameCallback) {
+    // Jalur cepat: putar video (dipercepat & tanpa suara) lalu tangkap setiap
+    // frame saat dirender browser — jauh lebih cepat daripada seek per frame.
+    await seek(video, clip.startSeconds);
+    video.playbackRate = 4;
+    await video.play().catch(() => undefined);
+
+    await new Promise<void>((resolve) => {
+      let next = 0;
+      const step = () => {
+        if (signal?.aborted || next >= totalFrames || video.ended) {
+          resolve();
+          return;
+        }
+        const rel = video.currentTime - clip.startSeconds;
+        if (rel >= duration) {
+          resolve();
+          return;
+        }
+        const target = Math.min(totalFrames - 1, Math.floor(rel * FPS));
+        while (next <= target) {
+          encodeFrame(next);
+          next += 1;
+        }
+        if (videoEncoder.encodeQueueSize > 30) {
+          void videoEncoder.flush().then(() => {
+            (video as unknown as {
+              requestVideoFrameCallback: (cb: () => void) => number;
+            }).requestVideoFrameCallback(step);
+          });
+          return;
+        }
+        (video as unknown as {
+          requestVideoFrameCallback: (cb: () => void) => number;
+        }).requestVideoFrameCallback(step);
+      };
+      (video as unknown as {
+        requestVideoFrameCallback: (cb: () => void) => number;
+      }).requestVideoFrameCallback(step);
+    });
+    video.pause();
+  } else {
+    for (let i = 0; i < totalFrames; i += 1) {
+      if (signal?.aborted) break;
+      await seek(video, clip.startSeconds + i / FPS);
+      encodeFrame(i);
+      if (videoEncoder.encodeQueueSize > 8) {
+        await videoEncoder.flush();
+      }
     }
-    onProgress?.(Math.min(0.95, (i + 1) / totalFrames));
   }
   await videoEncoder.flush();
   videoEncoder.close();
+
 
   if (audio && typeof window.AudioEncoder !== "undefined") {
     const channels = Math.min(2, audio.numberOfChannels);
