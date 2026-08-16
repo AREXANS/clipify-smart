@@ -40,13 +40,23 @@ function CropPane({ videoId, start, end, rect, muted, playerId, onTime, onReady 
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [box, setBox] = useState<{ w: number; h: number } | null>(null);
 
+  // Buang band atas/bawah frame YouTube (judul, tombol share, watermark,
+  // subtitle bawaan) agar hasil klip bersih tanpa elemen YouTube.
+  const safe = useMemo(() => {
+    const h = Math.min(rect.h, 0.74);
+    const w = Math.min(rect.w, 0.94);
+    const y = Math.min(Math.max(rect.y, 0.13), 0.87 - h);
+    const x = Math.min(Math.max(rect.x, 0.03), 0.97 - w);
+    return { x, y, w, h };
+  }, [rect.x, rect.y, rect.w, rect.h]);
+
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
     const measure = () => {
       const r = host.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) {
-        const w = Math.max(r.width / rect.w, ((r.height * 16) / 9) / rect.h);
+        const w = Math.max(r.width / safe.w, ((r.height * 16) / 9) / safe.h);
         setBox({ w, h: (w * 9) / 16 });
       }
     };
@@ -54,7 +64,8 @@ function CropPane({ videoId, start, end, rect, muted, playerId, onTime, onReady 
     const ro = new ResizeObserver(measure);
     ro.observe(host);
     return () => ro.disconnect();
-  }, [rect.w, rect.h]);
+  }, [safe.w, safe.h]);
+
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -102,10 +113,12 @@ function CropPane({ videoId, start, end, rect, muted, playerId, onTime, onReady 
     `https://www.youtube.com/embed/${videoId}` +
     `?start=${Math.floor(start)}&end=${Math.ceil(end)}` +
     `&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&disablekb=1` +
+    `&cc_load_policy=0&cc_lang_pref=none&fs=0&showinfo=0&autohide=1&color=white` +
     `&enablejsapi=1&widgetid=1&mute=${muted ? 1 : 0}`;
 
-  const left = box ? -(rect.x + rect.w / 2) * box.w : 0;
-  const top = box ? -(rect.y + rect.h / 2) * box.h : 0;
+  const left = box ? -(safe.x + safe.w / 2) * box.w : 0;
+  const top = box ? -(safe.y + safe.h / 2) * box.h : 0;
+
 
   return (
     <div ref={hostRef} className="relative size-full overflow-hidden bg-background">

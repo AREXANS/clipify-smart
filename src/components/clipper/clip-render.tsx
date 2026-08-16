@@ -167,13 +167,18 @@ export function ClipRender({
           });
       setOutput({ url: result.url, extension: result.extension, size: result.blob.size });
 
-      // Langsung unduh tanpa langkah tambahan.
+      // Langsung unduh otomatis tanpa langkah tambahan.
       const link = document.createElement("a");
       link.href = result.url;
       link.download = `${String(index + 1).padStart(2, "0")}-${slugify(clip.title)}.${result.extension}`;
+      link.rel = "noopener";
+      link.style.display = "none";
       document.body.appendChild(link);
       link.click();
+      await new Promise((r) => setTimeout(r, 0));
       link.remove();
+
+
 
       toast.success("Klip terunduh", {
         description: `${(result.blob.size / 1_000_000).toFixed(1)} MB · ${
