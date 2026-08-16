@@ -78,8 +78,16 @@ function ToggleRow({
 }
 
 export function SettingsPanel({ settings, onChange, disabled }: Props) {
-  const camPreview = resolveFacecamRect(settings);
+  const out = OUTPUT_SIZE[settings.aspectRatio];
+  const camPaneH = Math.max(1, (out.h * settings.facecamShare) / 100);
+  // Kotak pratinjau memakai rasio panel keluaran agar sama persis dengan hasil
+  // klip (tidak ada bagian yang terpotong saat render).
+  const camPreview = resolveFacecamRect(settings, null, {
+    targetAspect: out.w / camPaneH,
+    sourceAspect: 16 / 9,
+  });
   const draggingRef = useRef(false);
+
 
   const moveFacecam = (clientX: number, clientY: number, element: HTMLElement) => {
     const bounds = element.getBoundingClientRect();
